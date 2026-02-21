@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <!-- Top Bar -->
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/spacing_md"
+        android:paddingEnd="@dimen/spacing_md"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/menuButton"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_menu_hamburger"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Menu"
+            android:scaleType="centerInside" />
+
+        <View
+            android:id="@+id/recordingIndicator"
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:layout_marginStart="@dimen/spacing_sm"
+            android:background="@color/recording_red"
+            android:visibility="gone" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <ImageButton
+            android:id="@+id/syncButton"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_sync_arrows"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Sync"
+            android:scaleType="centerInside"
+            app:tint="@color/teal_primary" />
+
+        <ImageButton
+            android:id="@+id/bluetoothButton"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="@dimen/spacing_sm"
+            android:src="@drawable/ic_bluetooth"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Bluetooth"
+            android:scaleType="centerInside"
+            app:tint="@color/teal_primary" />
+
+    </LinearLayout>
+
+    <!-- Timer -->
+    <TextView
+        android:id="@+id/timerText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_md"
+        android:text="@string/timer_default"
+        style="@style/TaalText.Timer"
+        app:layout_constraintTop_toBottomOf="@id/topBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Filter Icons Row -->
+    <LinearLayout
+        android:id="@+id/filterRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_md"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:paddingStart="@dimen/spacing_lg"
+        android:paddingEnd="@dimen/spacing_lg"
+        app:layout_constraintTop_toBottomOf="@id/timerText">
+
+        <ImageButton
+            android:id="@+id/filterHeart"
+            android:layout_width="@dimen/filter_icon_size"
+            android:layout_height="@dimen/filter_icon_size"
+            android:layout_margin="@dimen/spacing_xs"
+            android:src="@drawable/ic_heart"
+            android:padding="8dp"
+            android:background="@drawable/bg_filter_icon"
+            android:scaleType="centerInside"
+            android:contentDescription="@string/filter_heart" />
+
+        <ImageButton
+            android:id="@+id/filterLungs"
+            android:layout_width="@dimen/filter_icon_size"
+            android:layout_height="@dimen/filter_icon_size"
+            android:layout_margin="@dimen/spacing_xs"
+            android:src="@drawable/ic_lungs"
+            android:padding="8dp"
+            android:background="@drawable/bg_filter_icon"
+            android:scaleType="centerInside"
+            android:contentDescription="@string/filter_lungs" />
+
+        <ImageButton
+            android:id="@+id/filterBowel"
+            android:layout_width="@dimen/filter_icon_size"
+            android:layout_height="@dimen/filter_icon_size"
+            android:layout_margin="@dimen/spacing_xs"
+            android:src="@drawable/ic_bowel"
+            android:padding="8dp"
+            android:background="@drawable/bg_filter_icon"
+            android:scaleType="centerInside"
+            android:contentDescription="@string/filter_bowel" />
+
+        <ImageButton
+            android:id="@+id/filterPregnancy"
+            android:layout_width="@dimen/filter_icon_size"
+            android:layout_height="@dimen/filter_icon_size"
+            android:layout_margin="@dimen/spacing_xs"
+            android:src="@drawable/ic_pregnancy"
+            android:padding="8dp"
+            android:background="@drawable/bg_filter_icon"
+            android:scaleType="centerInside"
+            android:contentDescription="@string/filter_pregnancy" />
+
+        <ImageButton
+            android:id="@+id/filterInfo"
+            android:layout_width="@dimen/filter_icon_size"
+            android:layout_height="@dimen/filter_icon_size"
+            android:layout_margin="@dimen/spacing_xs"
+            android:src="@drawable/ic_accessibility"
+            android:padding="8dp"
+            android:background="@drawable/bg_filter_icon"
+            android:scaleType="centerInside"
+            android:contentDescription="@string/filter_full_body" />
+
+    </LinearLayout>
+
+    <!-- Waveform Chart -->
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/waveformChart"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/spacing_sm"
+        android:layout_marginStart="@dimen/spacing_md"
+        android:layout_marginEnd="@dimen/spacing_md"
+        app:layout_constraintTop_toBottomOf="@id/filterRow"
+        app:layout_constraintBottom_toTopOf="@id/bpmText"
+        app:layout_constraintHeight_min="200dp" />
+
+    <!-- BPM -->
+    <TextView
+        android:id="@+id/bpmText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="-- BPM"
+        android:textSize="@dimen/text_bpm"
+        android:textColor="@color/text_secondary"
+        app:layout_constraintBottom_toTopOf="@id/actionText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="@dimen/spacing_sm" />
+
+    <!-- Action Text (Start/Stop Recording) -->
+    <TextView
+        android:id="@+id/actionText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/start_recording"
+        android:textSize="16sp"
+        android:textColor="@color/text_primary"
+        app:layout_constraintBottom_toTopOf="@id/recordButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="@dimen/spacing_sm" />
+
+    <!-- Record Button -->
+    <ImageButton
+        android:id="@+id/recordButton"
+        android:layout_width="@dimen/record_button_size"
+        android:layout_height="@dimen/record_button_size"
+        android:background="@drawable/bg_record_button"
+        android:scaleType="centerInside"
+        android:contentDescription="Record"
+        app:layout_constraintBottom_toTopOf="@id/bottomBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="@dimen/spacing_md" />
+
+    <!-- Bottom Bar (state-dependent) -->
+    <LinearLayout
+        android:id="@+id/bottomBar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bottom_bar_height"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:paddingStart="@dimen/spacing_lg"
+        android:paddingEnd="@dimen/spacing_lg"
+        android:paddingBottom="@dimen/spacing_sm"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- Pre-recording buttons -->
+        <LinearLayout
+            android:id="@+id/preRecordingButtons"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <ImageButton
+                android:id="@+id/folderButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="@dimen/spacing_sm"
+                android:background="@drawable/bg_bottom_action_button"
+                android:src="@drawable/ic_gallery"
+                android:scaleType="centerInside"
+                android:contentDescription="Library"
+                app:tint="@color/white" />
+
+            <ImageButton
+                android:id="@+id/settingsButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/spacing_sm"
+                android:background="@drawable/bg_bottom_action_button"
+                android:src="@drawable/ic_settings"
+                android:scaleType="centerInside"
+                android:contentDescription="Settings"
+                app:tint="@color/white" />
+
+        </LinearLayout>
+
+        <!-- Recording active buttons (hidden initially) -->
+        <LinearLayout
+            android:id="@+id/recordingButtons"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:visibility="gone">
+
+            <ImageButton
+                android:id="@+id/trashButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:src="@drawable/ic_trash"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Discard"
+                android:scaleType="centerInside" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <ImageButton
+                android:id="@+id/playPauseButton"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:src="@drawable/ic_play"
+                android:background="@drawable/bg_record_button"
+                android:contentDescription="Play"
+                android:scaleType="centerInside" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <ImageButton
+                android:id="@+id/saveCheckButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:src="@drawable/ic_check_save"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Save"
+                android:scaleType="centerInside" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
