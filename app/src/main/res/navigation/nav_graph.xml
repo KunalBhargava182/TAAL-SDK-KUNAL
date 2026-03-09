@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/splashFragment">
+    app:startDestination="@id/recordingFragment">
 
     <!-- Splash Screen -->
     <fragment
@@ -202,7 +202,17 @@
         <action
             android:id="@+id/action_recording_to_library"
             app:destination="@id/recordingLibraryFragment" />
+        <action
+            android:id="@+id/action_recording_to_newRecording"
+            app:destination="@id/newRecordingFragment" />
     </fragment>
+
+    <!-- Experimental new recording UI — for testing only -->
+    <fragment
+        android:id="@+id/newRecordingFragment"
+        android:name="com.musediagnostics.taal.app.ui.recording.NewRecordingFragment"
+        android:label="New Recording UI"
+        tools:layout="@layout/fragment_new_recording" />
 
     <fragment
         android:id="@+id/playerFragment"
@@ -217,12 +227,19 @@
             android:name="filePath"
             app:argType="string"
             android:defaultValue="" />
+        <argument
+            android:name="isNewRecording"
+            app:argType="boolean"
+            android:defaultValue="false" />
         <action
             android:id="@+id/action_player_to_equalizer"
             app:destination="@id/equalizerFragment" />
         <action
             android:id="@+id/action_player_to_crop"
             app:destination="@id/cropRecordingFragment" />
+        <action
+            android:id="@+id/action_player_to_addPatient"
+            app:destination="@id/addPatientFragment" />
     </fragment>
 
     <fragment

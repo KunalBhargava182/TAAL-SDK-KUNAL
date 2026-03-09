@@ -3,6 +3,9 @@ package com.musediagnostics.taal.app.ui.recording
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.media.AudioFormat
+import android.media.AudioManager
+import android.media.AudioTrack
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,15 +16,10 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import android.graphics.Canvas
-import android.graphics.Paint
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
-import com.github.mikephil.charting.renderer.XAxisRenderer
-import com.github.mikephil.charting.utils.Transformer
-import com.github.mikephil.charting.utils.ViewPortHandler
 import com.musediagnostics.taal.PreFilter
 import com.musediagnostics.taal.TaalRecorder
 import com.musediagnostics.taal.core.RecorderState
@@ -38,32 +36,35 @@ class RecordingFragment : Fragment() {
     private val viewModel: RecordingViewModel by viewModels()
 
     private var taalRecorder: TaalRecorder? = null
-    private val waveformEntries = ArrayList<Entry>(MAX_VISIBLE_POINTS)
+    private var audioTrack: AudioTrack? = null
+    private val waveformEntries = ArrayList<Entry>()
+
     // Persistent dataset — reused every callback to avoid MPAndroidChart's
     // mOffsetsCalculated=false reset that causes a blank frame each time chart.data is replaced.
     private var waveformDataSet: LineDataSet? = null
-    private var peakAmplitude = 1.0f       // Y-axis half-range; set from warmup then slow-decays
+    private var peakAmplitude = 1.0f       // Y-axis half-range; set from warmup then locked
     private var lastPeakUpdateTime = 0L
     private var warmupPeak = 0f           // Accumulates absolute-peak over the warmup window
     private var warmupDone = false        // Latches true after WARMUP_MS of signal observed
     private var recordingStartTime = 0L
     private var chartInitialized = false
+    private var totalSamplesProcessed = 0L  // Sample-accurate X position counter
     private val bpmCalculator = HeartBpmCalculator()
     private val bpmScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     companion object {
         private const val WINDOW_SECONDS = 10f
         private const val INPUT_SAMPLE_RATE = 44100f
-        // Display at 8kHz — covers 0-4kHz which captures all cardiac/pulmonary sounds.
-        private const val DISPLAY_SAMPLE_RATE = 8000f
-        private const val TARGET_POINTS_IN_WINDOW = 2000
-        private const val MAX_VISIBLE_POINTS = 4000
-        // WARMUP: measure the signal's true peak over the first 1500ms, then lock in the
-        // Y-axis scale. After warmup, scale only drifts DOWN at 0.1% per callback (very slow),
-        // preventing the pulsing/inflating the previous exponential-blend approach caused.
+
+        // Fixed downsample step: 44100 / 44 ≈ 1002 points/sec — good visual resolution
+        private const val DOWNSAMPLE_STEP = 44
+
+        // WARMUP: measure the signal's true peak over the first 1500ms, then lock in the Y-axis.
         private const val WARMUP_MS = 1500L
+
         // After warmup, Y-axis = peakAmplitude × HEADROOM so waveform fills ~65% of height.
         private const val HEADROOM = 1.5f
+
         // Minimum axis half-range — prevents over-zooming on near-silence
         private const val MIN_PEAK = 0.02f
     }
@@ -79,8 +80,7 @@ class RecordingFragment : Fragment() {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentRecordingBinding.inflate(inflater, container, false)
         return binding.root
@@ -108,38 +108,33 @@ class RecordingFragment : Fragment() {
         chart.setDrawMarkers(false)
         chart.setMaxVisibleValueCount(0)
 
-        // ECG paper background — classic warm pink
-        chart.setDrawGridBackground(true)
-        chart.setGridBackgroundColor(Color.parseColor("#FFF5F5"))
+        chart.setDrawGridBackground(false)
 
-        // X axis: labels at every 0.2s (large ECG box = 5 small boxes)
+        // X-axis: pre-draw a persistent 5-minute grid (0–300s) that never disappears.
+        // setVisibleXRangeMaximum ensures only a 10s window is shown at a time.
         chart.xAxis.apply {
             position = XAxis.XAxisPosition.BOTTOM
-            // Draw MPAndroidChart's built-in grid at 0.04s intervals (small ECG boxes)
             setDrawGridLines(true)
-            gridColor = Color.parseColor("#FFCCCC")   // light — small box color
-            gridLineWidth = 0.5f
-            granularity = 0.04f                        // small box = 0.04s
-            textColor = Color.parseColor("#CC9999")
+            gridColor = Color.parseColor("#EAEAEA")
+            gridLineWidth = 1f
+            granularity = 1f       // one grid line per second
+            axisMinimum = 0f
+            axisMaximum = 300f
+            textColor = Color.parseColor("#999999")
             textSize = 8f
-            // Only draw text labels at every 0.20s (large box boundary)
-            // We achieve this by setting labelCount to match the window / 0.2s
-            setLabelCount(6, false)                   // ~0.2s apart on 10s window
+            setLabelCount(6, false)
             setAvoidFirstLastClipping(true)
             setDrawAxisLine(false)
             setDrawLabels(true)
         }
 
-        // Install custom renderer that overlays thick lines at 0.20s boundaries
-        chart.setXAxisRenderer(EcgXAxisRenderer(
-            chart.viewPortHandler, chart.xAxis, chart.getTransformer(com.github.mikephil.charting.components.YAxis.AxisDependency.LEFT)
-        ))
-
-        // Y axis: horizontal grid — 5 large ECG box rows
+        // Y-axis: light grey horizontal grid; initial range ±1.0 — locked in after warmup
         chart.axisLeft.apply {
             setDrawGridLines(true)
-            gridColor = Color.parseColor("#FFCCCC")   // light — small box color
-            gridLineWidth = 0.5f
+            gridColor = Color.parseColor("#EAEAEA")
+            gridLineWidth = 1f
+            axisMinimum = -1f
+            axisMaximum = 1f
             setLabelCount(5, true)
             setDrawLabels(false)
             setDrawAxisLine(false)
@@ -148,52 +143,11 @@ class RecordingFragment : Fragment() {
         chart.axisRight.isEnabled = false
         chart.setExtraOffsets(2f, 4f, 2f, 4f)
         chart.setLayerType(View.LAYER_TYPE_NONE, null)
-    }
 
-    /**
-     * Custom X-axis renderer that draws two grid densities:
-     *   - Thin lines every 0.04s  (small ECG box — built into MPAndroidChart's xAxis)
-     *   - Thick lines every 0.20s (large ECG box — drawn here, 5× heavier)
-     * This matches standard ECG paper where 5 small boxes = 1 large box.
-     */
-    inner class EcgXAxisRenderer(
-        viewPortHandler: ViewPortHandler,
-        xAxis: com.github.mikephil.charting.components.XAxis,
-        trans: Transformer
-    ) : XAxisRenderer(viewPortHandler, xAxis, trans) {
-
-        private val largePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#E89999")   // darker pink — large box color
-            strokeWidth = 1.5f
-            style = Paint.Style.STROKE
-        }
-
-        override fun renderGridLines(c: Canvas) {
-            // Let the parent draw the thin small-box lines (0.04s interval)
-            super.renderGridLines(c)
-
-            // Then overlay thick large-box lines at every 0.20s boundary
-            if (!mXAxis.isDrawGridLinesEnabled) return
-            val range = mViewPortHandler.contentRect
-            val clipRestoreCount = c.save()
-            c.clipRect(range)
-
-            val axisMin = mXAxis.axisMinimum
-            val axisMax = mXAxis.axisMaximum
-
-            // Find the first 0.20s boundary >= axisMin
-            val largeBox = 0.20f
-            var x = Math.ceil((axisMin / largeBox).toDouble()).toFloat() * largeBox
-
-            val pts = FloatArray(4)
-            while (x <= axisMax) {
-                pts[0] = x; pts[1] = 0f; pts[2] = x; pts[3] = 1f
-                mTrans.pointValuesToPixel(pts)
-                c.drawLine(pts[0], range.top, pts[0], range.bottom, largePaint)
-                x += largeBox
-            }
-            c.restoreToCount(clipRestoreCount)
-        }
+        // Show a 10s sliding window; seed with empty data so the grid renders immediately
+        chart.setVisibleXRangeMaximum(10f)
+        chart.data = LineData()
+        chart.invalidate()
     }
 
     private fun setupFilterButtons() {
@@ -204,6 +158,10 @@ class RecordingFragment : Fragment() {
             binding.filterPregnancy to "PREGNANCY",
             binding.filterInfo to "FULL_BODY"
         )
+
+        // Set HEART as the default selected filter
+        binding.filterHeart.isSelected = true
+        viewModel.setFilter("HEART")
 
         filters.forEach { (button, filterName) ->
             button.setOnClickListener {
@@ -226,27 +184,26 @@ class RecordingFragment : Fragment() {
                 RecordingUiState.IDLE -> {
                     checkPermissionAndRecord()
                 }
+
                 RecordingUiState.RECORDING -> {
                     stopRecording()
                 }
-                RecordingUiState.STOPPED -> {
-                    // In STOPPED state, the record button should force save/discard dialog
-                    showSaveDialog()
-                }
+
+                // RecordingUiState.STOPPED -> {
+                //     showSaveDialog()
+                // }
+
                 else -> {
                     resetToIdle()
                 }
             }
         }
 
-        binding.saveCheckButton.setOnClickListener {
-            showSaveDialog()
-        }
-
-        binding.trashButton.setOnClickListener {
-            resetToIdle()
-            Toast.makeText(requireContext(), "Recording discarded", Toast.LENGTH_SHORT).show()
-        }
+        // binding.saveCheckButton.setOnClickListener { showSaveDialog() }
+        // binding.trashButton.setOnClickListener {
+        //     resetToIdle()
+        //     Toast.makeText(requireContext(), "Recording discarded", Toast.LENGTH_SHORT).show()
+        // }
 
         binding.playPauseButton.setOnClickListener {
             // Navigate to player with current recording
@@ -263,7 +220,7 @@ class RecordingFragment : Fragment() {
         }
 
         binding.settingsButton.setOnClickListener {
-            Toast.makeText(requireContext(), "Settings coming soon", Toast.LENGTH_SHORT).show()
+            findNavController().navigate(R.id.action_recording_to_newRecording)
         }
     }
 
@@ -274,12 +231,14 @@ class RecordingFragment : Fragment() {
         waveformEntries.clear()
         waveformDataSet = null
         chartInitialized = false
-        peakAmplitude = 1.0f  // Wide open until warmup locks it in
+        peakAmplitude = 1.0f
         warmupPeak = 0f
         warmupDone = false
         lastPeakUpdateTime = 0L
-        binding.waveformChart.clear()
-        binding.waveformChart.data = null
+        totalSamplesProcessed = 0L
+        // Keep empty LineData so the persistent grid stays visible
+        binding.waveformChart.data = LineData()
+        binding.waveformChart.moveViewToX(0f)
         binding.waveformChart.invalidate()
         binding.bpmText.text = "-- BPM"
     }
@@ -292,23 +251,37 @@ class RecordingFragment : Fragment() {
                     binding.recordButton.visibility = View.VISIBLE
                     binding.preRecordingButtons.visibility = View.VISIBLE
                     binding.recordingButtons.visibility = View.GONE
-                    binding.recordingIndicator.visibility = View.GONE
+
+                    // Set to your initial record icon when idle
+                    binding.recordButton.setImageResource(R.drawable.ic_recording_start1)
+
                     binding.timerText.text = getString(R.string.timer_default)
                 }
+
                 RecordingUiState.RECORDING -> {
                     binding.actionText.text = getString(R.string.stop_recording)
                     binding.recordButton.visibility = View.VISIBLE
                     binding.preRecordingButtons.visibility = View.GONE
                     binding.recordingButtons.visibility = View.GONE
-                    binding.recordingIndicator.visibility = View.VISIBLE
+
+                    // Toggle to your professional stop icon while actively recording
+                    binding.recordButton.setImageResource(R.drawable.ic_recording_stop)
                 }
-                RecordingUiState.STOPPED -> {
-                    binding.actionText.text = "Save or Discard"
-                    binding.recordButton.visibility = View.GONE
-                    binding.preRecordingButtons.visibility = View.GONE
-                    binding.recordingButtons.visibility = View.VISIBLE
-                    binding.recordingIndicator.visibility = View.GONE
-                }
+
+                // RecordingUiState.STOPPED -> {
+                //     binding.actionText.text = "Save or Discard"
+                //     binding.recordButton.visibility = View.GONE
+                //     binding.preRecordingButtons.visibility = View.GONE
+                //     binding.recordingButtons.visibility = View.VISIBLE
+                //     // binding.recordingIndicator.visibility = View.GONE  (Removed)
+                //     binding.waveformChart.apply {
+                //         setTouchEnabled(true)
+                //         isDragEnabled = true
+                //         setScaleEnabled(true)
+                //         setPinchZoom(true)
+                //     }
+                // }
+
                 else -> {}
             }
         }
@@ -321,7 +294,6 @@ class RecordingFragment : Fragment() {
             binding.bpmText.text = if (bpm > 0) getString(R.string.bpm_format, bpm) else "-- BPM"
         }
     }
-
     private fun checkPermissionAndRecord() {
         if (ContextCompat.checkSelfPermission(
                 requireContext(), Manifest.permission.RECORD_AUDIO
@@ -335,7 +307,8 @@ class RecordingFragment : Fragment() {
 
     private fun startRecording() {
         try {
-            val filePath = "${requireContext().filesDir}/recording_${System.currentTimeMillis()}.wav"
+            val filePath =
+                "${requireContext().filesDir}/recording_${System.currentTimeMillis()}.wav"
             viewModel.currentRecordingPath = filePath
 
             val filterName = viewModel.currentFilter.value ?: "HEART"
@@ -355,20 +328,27 @@ class RecordingFragment : Fragment() {
                                 RecorderState.RECORDING -> {
                                     viewModel.setUiState(RecordingUiState.RECORDING)
                                 }
+
                                 RecorderState.STOPPED -> {
                                     viewModel.setUiState(RecordingUiState.STOPPED)
                                 }
+
                                 else -> {}
                             }
                         }
                     }
 
                     override fun onProgressUpdate(
-                        sampleRate: Int,
-                        bufferSize: Int,
-                        timeStamp: Double,
-                        data: FloatArray
+                        sampleRate: Int, bufferSize: Int, timeStamp: Double, data: FloatArray
                     ) {
+                        // Live audio monitoring — write PCM directly on the IO thread
+                        audioTrack?.let { track ->
+                            val pcm = ShortArray(data.size) { i ->
+                                (data[i] * 32767f).toInt().coerceIn(-32768, 32767).toShort()
+                            }
+                            track.write(pcm, 0, pcm.size)
+                        }
+
                         // Feed BPM calculator (fast - just buffer copy)
                         val shouldCompute = bpmCalculator.addSamples(data)
                         if (shouldCompute) {
@@ -399,127 +379,139 @@ class RecordingFragment : Fragment() {
             waveformEntries.clear()
             waveformDataSet = null
             chartInitialized = false
-            peakAmplitude = 1.0f  // Wide open until warmup locks it in
+            peakAmplitude = 1.0f
             warmupPeak = 0f
             warmupDone = false
             lastPeakUpdateTime = 0L
+            totalSamplesProcessed = 0L
             bpmCalculator.reset()
-            binding.waveformChart.clear()
-            binding.waveformChart.data = null
+            binding.waveformChart.data = LineData()
+            binding.waveformChart.moveViewToX(0f)
+            startAudioMonitor()
             taalRecorder?.start()
 
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_LONG).show()
+            // Centered dialog for modern Android versions
+            com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Recording Error").setMessage(e.message)
+                .setPositiveButton("OKAY") { dialog, _ ->
+                    dialog.dismiss()
+                }.show()
             viewModel.setUiState(RecordingUiState.IDLE)
         }
     }
 
+    private fun startAudioMonitor() {
+        val minBuf = AudioTrack.getMinBufferSize(
+            44100, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT
+        )
+        audioTrack = AudioTrack(
+            AudioManager.STREAM_MUSIC,
+            44100,
+            AudioFormat.CHANNEL_OUT_MONO,
+            AudioFormat.ENCODING_PCM_16BIT,
+            minBuf * 2,
+            AudioTrack.MODE_STREAM
+        ).apply { play() }
+    }
+
+    private fun stopAudioMonitor() {
+        try {
+            audioTrack?.stop()
+        } catch (_: Exception) {
+        }
+        try {
+            audioTrack?.release()
+        } catch (_: Exception) {
+        }
+        audioTrack = null
+    }
+
     private fun stopRecording() {
+        stopAudioMonitor()
         try {
             taalRecorder?.stop()
-        } catch (_: Exception) {}
-        taalRecorder = null  // Null out so onResume can detect return from AddPatient
-        viewModel.setUiState(RecordingUiState.STOPPED)
+        } catch (_: Exception) {
+        }
+        taalRecorder = null
+        // Navigate directly to player instead of showing Save/Discard dialog
+        val path = viewModel.currentRecordingPath
+        if (path.isNotEmpty()) {
+            val bundle = Bundle().apply {
+                putString("filePath", path)
+                putBoolean("isNewRecording", true)
+            }
+            findNavController().navigate(R.id.action_recording_to_player, bundle)
+        }
+        // viewModel.setUiState(RecordingUiState.STOPPED) // replaced by direct navigation
     }
 
     /**
-     * RED-TEAM V6 — Warmup-based peak detection. No DISPLAY_GAIN.
+     * V7 — Sample-accurate X positioning + stable Y-axis.
      *
-     * PROBLEM WITH V5 (DISPLAY_GAIN=100):
-     *   Assumed signal was quiet (RMS ~0.001). Phone mic via AudioRecord.DEFAULT delivers
-     *   normal mic levels (RMS 0.05–0.3). Multiplying by 100 clips everything to ±1.0,
-     *   producing a square wave and a Y-axis permanently stuck at ±1.0.
-     *   The exponential-blend RMS chasing caused rapid pulsing (inflating/deflating).
+     * X-axis: use a monotonically incrementing sample counter (totalSamplesProcessed)
+     * divided by the sample rate to get jitter-free X positions. The chart has a fixed
+     * 0–300s range pre-drawn; we pan it with moveViewToX() for smooth scrolling.
      *
-     * NEW APPROACH — two-phase scaling:
-     *
-     *   Phase 1 — WARMUP (first WARMUP_MS = 1500ms):
-     *     Accumulate the highest absolute sample seen across ALL buffers in this window.
-     *     Y-axis = ±1.0 (default, stable) while measuring.
-     *     No updates to peakAmplitude yet.
-     *
-     *   Phase 2 — LOCKED (after warmup):
-     *     Set peakAmplitude = warmupPeak × HEADROOM once, at warmup completion.
-     *     Then allow ONLY slow downward drift: multiply by 0.999 per callback.
-     *     If a new buffer's peak exceeds current peakAmplitude, immediately expand upward.
-     *     This gives a stable axis that auto-zooms in after 1.5s and never pulses.
+     * Y-axis (two-phase):
+     *   Phase 1 — WARMUP (first 1500ms): accumulate true peak; axis stays ±1.0.
+     *   Phase 2 — LOCKED: axis only expands when signal exceeds current scale.
+     *   The Y-axis is only written when peakAmplitude actually changes, eliminating
+     *   the constant min/max updates that caused the grid to flicker.
      */
     private fun updateWaveform(timestamp: Double, data: FloatArray) {
         if (_binding == null || !isAdded) return
         val chart = binding.waveformChart
 
-        val bufferDuration = data.size.toFloat() / INPUT_SAMPLE_RATE
-
-        // Scrolling window: grow from 0..10s first, then slide.
-        // Without coerceAtLeast, windowEnd stays near 0 for the first 10s and the waveform
-        // renders as a tiny sliver in the far-right corner of a huge negative-X range.
-        val windowEnd = maxOf(timestamp.toFloat() + bufferDuration, WINDOW_SECONDS)
-        val windowStart = windowEnd - WINDOW_SECONDS
-
-        // Adaptive downsampling (V3 formula — verified correct)
-        val displayStep = maxOf(1, (INPUT_SAMPLE_RATE / DISPLAY_SAMPLE_RATE).toInt())
-        val budgetStep = maxOf(1, data.size / maxOf(1,
-            ((bufferDuration / WINDOW_SECONDS) * TARGET_POINTS_IN_WINDOW).toInt()))
-        val step = maxOf(displayStep, budgetStep)
-
-        // Absolute peak of this buffer (max |sample|) — more stable than RMS for axis scaling
+        // Absolute peak of this buffer for Y-axis scaling
         var bufferPeak = 0f
         for (sample in data) {
             val abs = Math.abs(sample)
             if (abs > bufferPeak) bufferPeak = abs
         }
 
-        // Add downsampled entries (raw samples, no gain — data is already at correct level)
+        // Add entries with sample-accurate X positions (no timestamp jitter)
+        val step = DOWNSAMPLE_STEP
         for (i in 0 until data.size step step) {
-            val x = timestamp.toFloat() + (i.toFloat() / INPUT_SAMPLE_RATE)
+            val x = totalSamplesProcessed.toFloat() / INPUT_SAMPLE_RATE
             waveformEntries.add(Entry(x, data[i]))
+            totalSamplesProcessed += step
+        }
+        val currentX = totalSamplesProcessed.toFloat() / INPUT_SAMPLE_RATE
+
+        // Trim entries older than 20s behind current position (keeps ~2x the visible window)
+        if (currentX > 30f) {
+            val cutoff = currentX - 20f
+            val trimIndex = waveformEntries.indexOfFirst { it.x >= cutoff }
+            if (trimIndex > 0) waveformEntries.subList(0, trimIndex).clear()
         }
 
         val now = System.currentTimeMillis()
 
         if (!warmupDone) {
-            // Phase 1: accumulate peak during warmup window
+            // Phase 1: accumulate peak; Y-axis stays at ±1.0 (set in setupWaveformChart)
             if (bufferPeak > warmupPeak) warmupPeak = bufferPeak
             if (lastPeakUpdateTime == 0L) lastPeakUpdateTime = now
 
             if (now - lastPeakUpdateTime >= WARMUP_MS) {
-                // Warmup complete — lock in the scale
                 warmupDone = true
                 peakAmplitude = (warmupPeak * HEADROOM).coerceIn(MIN_PEAK, 1.0f)
+                // Write Y-axis once at warmup completion
+                chart.axisLeft.axisMinimum = -peakAmplitude
+                chart.axisLeft.axisMaximum = peakAmplitude
             }
-            // During warmup keep axis at ±1.0 — stable, no zooming in yet
         } else {
-            // Phase 2: axis is locked. Allow ONLY:
-            //   • Immediate upward expansion if signal exceeds current scale
-            //   • Very slow downward drift (0.1% per callback ≈ 2% per second at 20 callbacks/s)
+            // Phase 2: only expand Y-axis when signal exceeds current scale.
+            // No downward drift — constant updates cause grid flicker.
             val needed = bufferPeak * HEADROOM
-            peakAmplitude = if (needed > peakAmplitude) {
-                needed.coerceAtMost(1.0f)          // expand instantly
-            } else {
-                (peakAmplitude * 0.999f).coerceAtLeast(MIN_PEAK)  // drift down imperceptibly
+            if (needed > peakAmplitude) {
+                peakAmplitude = needed.coerceAtMost(1.0f)
+                chart.axisLeft.axisMinimum = -peakAmplitude
+                chart.axisLeft.axisMaximum = peakAmplitude
             }
         }
 
-        // Trim entries that have scrolled out of the visible window.
-        // Use subList().clear() instead of repeated removeAt(0) — O(n) once vs O(n²).
-        val trimIndex = waveformEntries.indexOfFirst { it.x >= windowStart }
-        if (trimIndex > 0) waveformEntries.subList(0, trimIndex).clear()
-        if (waveformEntries.size > MAX_VISIBLE_POINTS)
-            waveformEntries.subList(0, waveformEntries.size - MAX_VISIBLE_POINTS).clear()
-
-        // Guard: only update axes when range is valid
-        if (windowStart < windowEnd) {
-            chart.xAxis.axisMinimum = windowStart
-            chart.xAxis.axisMaximum = windowEnd
-        }
-        if (peakAmplitude > 0f) {
-            chart.axisLeft.axisMinimum = -peakAmplitude
-            chart.axisLeft.axisMaximum = peakAmplitude
-        }
-
-        // Reuse the persistent dataset to avoid MPAndroidChart resetting its transformer
-        // state (mOffsetsCalculated=false) on every callback, which caused a blank frame
-        // each time chart.data was replaced with a new LineData object.
+        // Reuse persistent dataset — never replace chart.data to avoid blank frames
         val snapshot = ArrayList(waveformEntries.toList())
         val ds = waveformDataSet
         if (ds == null || chart.data == null) {
@@ -537,60 +529,60 @@ class RecordingFragment : Fragment() {
             chart.data?.notifyDataChanged()
         }
         chart.notifyDataSetChanged()
-        chart.invalidate()
+
+        // Pan the viewport to follow the waveform (smooth scroll, no axis mutation)
+        if (currentX > WINDOW_SECONDS) {
+            chart.moveViewToX(currentX - WINDOW_SECONDS)
+        } else {
+            chart.moveViewToX(0f)
+        }
     }
 
-    private fun showSaveDialog() {
-        val dialog = SaveAlertDialog { saveType ->
-            when (saveType) {
-                SaveAlertDialog.SaveType.SAVE -> {
-                    navigateToAddPatient()
-                }
-                SaveAlertDialog.SaveType.EMERGENCY -> {
-                    showEmergencySaveDialog()
-                }
-                SaveAlertDialog.SaveType.DISCARD -> {
-                    resetToIdle()
-                }
-            }
-        }
-        dialog.show(parentFragmentManager, "save_alert")
-    }
+    // private fun showSaveDialog() {
+    //     val dialog = SaveAlertDialog { saveType ->
+    //         when (saveType) {
+    //             SaveAlertDialog.SaveType.SAVE      -> navigateToAddPatient()
+    //             SaveAlertDialog.SaveType.EMERGENCY -> showEmergencySaveDialog()
+    //             SaveAlertDialog.SaveType.DISCARD   -> resetToIdle()
+    //         }
+    //     }
+    //     dialog.show(parentFragmentManager, "save_alert")
+    // }
 
-    private fun showEmergencySaveDialog() {
-        val dialog = EmergencySaveDialog { fileName ->
-            if (fileName != null) {
-                viewModel.currentRecordingPath.let { path ->
-                    if (path.isNotEmpty()) {
-                        val file = java.io.File(path)
-                        val dir = file.parentFile
-                        val newFile = java.io.File(dir, "EMERGENCY_${fileName}_${System.currentTimeMillis()}.wav")
-                        file.renameTo(newFile)
-                        viewModel.currentRecordingPath = newFile.absolutePath
-                    }
-                }
-                Toast.makeText(requireContext(), getString(R.string.recording_saved), Toast.LENGTH_SHORT).show()
-                resetToIdle()
-            }
-        }
-        dialog.show(parentFragmentManager, "emergency_save")
-    }
+    // private fun showEmergencySaveDialog() {
+    //     val dialog = EmergencySaveDialog { fileName ->
+    //         if (fileName != null) {
+    //             viewModel.currentRecordingPath.let { path ->
+    //                 if (path.isNotEmpty()) {
+    //                     val file = java.io.File(path)
+    //                     val newFile = java.io.File(file.parentFile, "EMERGENCY_${fileName}_${System.currentTimeMillis()}.wav")
+    //                     file.renameTo(newFile)
+    //                     viewModel.currentRecordingPath = newFile.absolutePath
+    //                 }
+    //             }
+    //             Toast.makeText(requireContext(), getString(R.string.recording_saved), Toast.LENGTH_SHORT).show()
+    //             resetToIdle()
+    //         }
+    //     }
+    //     dialog.show(parentFragmentManager, "emergency_save")
+    // }
 
-    private fun navigateToAddPatient() {
-        val bundle = Bundle().apply {
-            putString("recordingFilePath", viewModel.currentRecordingPath)
-        }
-        findNavController().navigate(R.id.action_recording_to_addPatient, bundle)
-    }
+    // private fun navigateToAddPatient() {
+    //     val bundle = Bundle().apply { putString("recordingFilePath", viewModel.currentRecordingPath) }
+    //     findNavController().navigate(R.id.action_recording_to_addPatient, bundle)
+    // }
 
     override fun onResume() {
         super.onResume()
-        // If we're coming back from AddPatient (save flow), reset to idle.
-        // After stopRecording(), taalRecorder is null. If state is still STOPPED
-        // when onResume fires, it means we navigated away (to AddPatient) and came back.
-        if (viewModel.uiState.value == RecordingUiState.STOPPED) {
+        // Recorder is null but state is RECORDING → we stopped and navigated to PlayerFragment,
+        // then the user pressed Discard and popped back here. Reset to idle.
+        if (taalRecorder == null && viewModel.uiState.value == RecordingUiState.RECORDING) {
             resetToIdle()
         }
+        // Commented out: old Save/Discard flow via AddPatientFragment
+        // if (viewModel.uiState.value == RecordingUiState.STOPPED) {
+        //     resetToIdle()
+        // }
     }
 
     override fun onDestroyView() {
@@ -601,8 +593,10 @@ class RecordingFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         bpmScope.cancel()
+        stopAudioMonitor()
         try {
             taalRecorder?.stop()
-        } catch (_: Exception) {}
+        } catch (_: Exception) {
+        }
     }
 }
