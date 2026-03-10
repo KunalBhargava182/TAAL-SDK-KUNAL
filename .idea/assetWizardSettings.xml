@@ -19,8 +19,8 @@
                         <option name="values">
                           <map>
                             <entry key="assetSourceType" value="FILE" />
-                            <entry key="outputName" value="ic_recording_stop" />
-                            <entry key="sourceFile" value="C:\Users\kunal\Downloads\ic_recording_stop.svg" />
+                            <entry key="outputName" value="ic_device_toggle" />
+                            <entry key="sourceFile" value="C:\Users\kunal\Downloads\ic_device_toggle.svg" />
                           </map>
                         </option>
                       </PersistentState>

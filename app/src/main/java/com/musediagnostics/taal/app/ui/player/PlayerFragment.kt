@@ -91,47 +91,29 @@ class PlayerFragment : Fragment() {
         val chart = binding.waveformChart
         chart.description.isEnabled = false
         chart.legend.isEnabled = false
-        chart.setNoDataText("Loading waveform...")
-        chart.isAutoScaleMinMaxEnabled = false
-        chart.setDrawMarkers(false)
-        chart.setMaxVisibleValueCount(0)
-        chart.setDrawGridBackground(false)
+        chart.setDrawGridBackground(true)
+        chart.setGridBackgroundColor(Color.WHITE)
 
         chart.xAxis.apply {
             position = XAxis.XAxisPosition.BOTTOM
             setDrawGridLines(true)
-            gridColor = Color.parseColor("#EAEAEA")
+            gridColor = Color.parseColor("#F0F0F0")
             gridLineWidth = 1f
-            granularity = 1f
-            textColor = Color.parseColor("#999999")
-            textSize = 10f
             setDrawAxisLine(false)
-            setDrawLabels(true)
-
-            valueFormatter = object : ValueFormatter() {
-                override fun getFormattedValue(value: Float): String {
-                    val totalSeconds = value.toInt()
-                    if (totalSeconds < 0) return ""
-                    val m = totalSeconds / 60
-                    val s = totalSeconds % 60
-                    return String.format("%02d:%02d", m, s)
-                }
-            }
+            setDrawLabels(false)
         }
 
         chart.axisLeft.apply {
             setDrawGridLines(true)
-            gridColor = Color.parseColor("#EAEAEA")
+            gridColor = Color.parseColor("#F0F0F0")
             gridLineWidth = 1f
             axisMinimum = -1f
             axisMaximum = 1f
-            setLabelCount(5, true)
             setDrawLabels(false)
             setDrawAxisLine(false)
         }
 
         chart.axisRight.isEnabled = false
-        chart.setExtraOffsets(2f, 4f, 2f, 4f)
     }
 
     /**
@@ -144,74 +126,39 @@ class PlayerFragment : Fragment() {
                 if (!file.exists()) return@launch
 
                 val bytes = file.readBytes()
-                val headerSize = 44 // Standard WAV header size
-                if (bytes.size <= headerSize) return@launch
+                val dataSize = bytes.size - 44
+                val totalSamples = dataSize / 2
+                val sampleStep = maxOf(1, totalSamples / 3000)
 
-                val dataSize = bytes.size - headerSize
-                val totalSamples = dataSize / 2 // 16-bit PCM = 2 bytes per sample
-
-                // Downsample to ~3000 points to ensure the chart renders instantly and smoothly
-                val pointsToDraw = 3000
-                val sampleStep = maxOf(1, totalSamples / pointsToDraw)
-                val byteStep = sampleStep * 2
-
-                var maxAmplitude = 0.02f
                 val entries = ArrayList<Entry>()
-
                 var sampleIndex = 0
-                for (i in headerSize until bytes.size - 1 step byteStep) {
+                for (i in 44 until bytes.size - 1 step sampleStep * 2) {
                     val low = bytes[i].toInt() and 0xFF
                     val high = bytes[i + 1].toInt() shl 8
                     val sample = (high or low).toShort().toFloat() / 32768f
-
-                    val absSample = kotlin.math.abs(sample)
-                    if (absSample > maxAmplitude) {
-                        maxAmplitude = absSample
-                    }
-
-                    val timeInSeconds = sampleIndex.toFloat() / INPUT_SAMPLE_RATE
-                    entries.add(Entry(timeInSeconds, sample))
+                    entries.add(Entry((sampleIndex.toFloat() / TestPlayerFragment.Companion.INPUT_SAMPLE_RATE), sample))
                     sampleIndex += sampleStep
                 }
 
                 withContext(Dispatchers.Main) {
                     if (_binding == null) return@withContext
-
                     val dataSet = LineDataSet(entries, "Waveform").apply {
-                        color = Color.parseColor("#128CB2") // Clean Teal color
+                        color = Color.parseColor("#128CB2")
                         setDrawCircles(false)
                         setDrawValues(false)
                         lineWidth = 1.0f
                         mode = LineDataSet.Mode.LINEAR
-                        setDrawHighlightIndicators(false)
                     }
-
-                    val chart = binding.waveformChart
-                    chart.data = LineData(dataSet)
-
-                    val bound = (maxAmplitude * HEADROOM).coerceAtMost(1.0f)
-                    chart.axisLeft.axisMinimum = -bound
-                    chart.axisLeft.axisMaximum = bound
-
-                    // Unlock zoom, drag, and pinch controls completely
-                    chart.setVisibleXRangeMaximum(Float.MAX_VALUE)
-                    chart.setTouchEnabled(true)
-                    chart.isDragEnabled = true
-                    chart.setScaleEnabled(true)
-                    chart.setPinchZoom(true)
-
-                    chart.fitScreen()
-                    chart.invalidate()
-
-                    // Set initial timer text to total duration
-                    val totalDurationSecs = totalSamples / INPUT_SAMPLE_RATE.toInt()
-                    binding.timerText.text = String.format(
-                        "%02d:%02d", totalDurationSecs / 60, totalDurationSecs % 60
-                    )
+                    binding.waveformChart.apply {
+                        data = LineData(dataSet)
+                        setVisibleXRangeMaximum(Float.MAX_VALUE)
+                        setTouchEnabled(true)
+                        isDragEnabled = true
+                        setScaleEnabled(true)
+                        invalidate()
+                    }
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            } catch (e: Exception) { e.printStackTrace() }
         }
     }
 

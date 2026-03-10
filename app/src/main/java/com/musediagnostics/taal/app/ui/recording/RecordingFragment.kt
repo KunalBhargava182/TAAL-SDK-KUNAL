@@ -27,6 +27,7 @@ import com.musediagnostics.taal.app.R
 import com.musediagnostics.taal.app.databinding.FragmentRecordingBinding
 import com.musediagnostics.taal.app.dsp.HeartBpmCalculator
 import com.musediagnostics.taal.app.ui.MainActivity
+import com.musediagnostics.taal.utils.TaalConnectionBroadcastReceiver
 import kotlinx.coroutines.*
 
 class RecordingFragment : Fragment() {
@@ -38,6 +39,8 @@ class RecordingFragment : Fragment() {
     private var taalRecorder: TaalRecorder? = null
     private var audioTrack: AudioTrack? = null
     private val waveformEntries = ArrayList<Entry>()
+
+    private var connectionReceiver: TaalConnectionBroadcastReceiver? = null
 
     // Persistent dataset — reused every callback to avoid MPAndroidChart's
     // mOffsetsCalculated=false reset that causes a blank frame each time chart.data is replaced.
@@ -93,63 +96,55 @@ class RecordingFragment : Fragment() {
         setupFilterButtons()
         setupButtons()
         observeState()
+        setupConnectionReceiver()
     }
+
 
     private fun setupWaveformChart() {
         val chart = binding.waveformChart
         chart.description.isEnabled = false
         chart.legend.isEnabled = false
         chart.setTouchEnabled(false)
-        chart.setNoDataText("")
-        chart.isAutoScaleMinMaxEnabled = false
-        chart.isDragEnabled = false
-        chart.setScaleEnabled(false)
-        chart.setPinchZoom(false)
-        chart.setDrawMarkers(false)
-        chart.setMaxVisibleValueCount(0)
+        chart.setDrawGridBackground(true)
+        chart.setGridBackgroundColor(Color.WHITE)
 
-        chart.setDrawGridBackground(false)
-
-        // X-axis: pre-draw a persistent 5-minute grid (0–300s) that never disappears.
-        // setVisibleXRangeMaximum ensures only a 10s window is shown at a time.
+        // Grid exactly like the video
         chart.xAxis.apply {
             position = XAxis.XAxisPosition.BOTTOM
             setDrawGridLines(true)
-            gridColor = Color.parseColor("#EAEAEA")
+            gridColor = Color.parseColor("#F0F0F0")
             gridLineWidth = 1f
-            granularity = 1f       // one grid line per second
+            granularity = 1f
             axisMinimum = 0f
-            axisMaximum = 300f
-            textColor = Color.parseColor("#999999")
-            textSize = 8f
-            setLabelCount(6, false)
-            setAvoidFirstLastClipping(true)
+            setLabelCount(10, false) // Ensure 10 vertical lines are drawn
             setDrawAxisLine(false)
-            setDrawLabels(true)
+            setDrawLabels(false)
         }
 
-        // Y-axis: light grey horizontal grid; initial range ±1.0 — locked in after warmup
         chart.axisLeft.apply {
             setDrawGridLines(true)
-            gridColor = Color.parseColor("#EAEAEA")
+            gridColor = Color.parseColor("#F0F0F0")
             gridLineWidth = 1f
             axisMinimum = -1f
             axisMaximum = 1f
-            setLabelCount(5, true)
+            setLabelCount(5, true) // Force exactly 5 horizontal lines
             setDrawLabels(false)
             setDrawAxisLine(false)
         }
 
         chart.axisRight.isEnabled = false
-        chart.setExtraOffsets(2f, 4f, 2f, 4f)
-        chart.setLayerType(View.LAYER_TYPE_NONE, null)
-
-        // Show a 10s sliding window; seed with empty data so the grid renders immediately
         chart.setVisibleXRangeMaximum(10f)
-        chart.data = LineData()
+
+        // THE FIX: Seed with transparent dummy data from 0s to 10s.
+        // This forces the vertical grid lines to draw immediately!
+        val dummyDataSet = LineDataSet(listOf(Entry(0f, 0f), Entry(10f, 0f)), "").apply {
+            color = Color.TRANSPARENT
+            setDrawCircles(false)
+            setDrawValues(false)
+        }
+        chart.data = LineData(dummyDataSet)
         chart.invalidate()
     }
-
     private fun setupFilterButtons() {
         val filters = mapOf(
             binding.filterHeart to "HEART",
@@ -171,6 +166,42 @@ class RecordingFragment : Fragment() {
                 button.isSelected = true
                 viewModel.setFilter(filterName)
             }
+        }
+    }
+
+    private fun setupConnectionReceiver() {
+        connectionReceiver = TaalConnectionBroadcastReceiver(object :
+            TaalConnectionBroadcastReceiver.TaalConnectionListener {
+            override fun onTaalConnect() {
+                activity?.runOnUiThread {
+                    // Device connected: change icon to Teal and keep it that way
+                    binding.deviceIcon.setColorFilter(Color.parseColor("#128CB2"))
+                }
+            }
+
+            override fun onTaalDisconnect() {
+                activity?.runOnUiThread {
+                    // Device disconnected: change icon back to Gray/Black
+                    binding.deviceIcon.setColorFilter(Color.parseColor("#333333"))
+                }
+            }
+        })
+        connectionReceiver?.register(requireContext())
+    }
+
+    private fun checkDeviceConnectionStatus() {
+        try {
+            val usbManager =
+                requireContext().getSystemService(android.content.Context.USB_SERVICE) as android.hardware.usb.UsbManager
+
+            // If the device list is not empty, a USB device (your TAAL stethoscope) is connected
+            if (usbManager.deviceList.isNotEmpty()) {
+                binding.deviceIcon.setColorFilter(Color.parseColor("#128CB2")) // Teal
+            } else {
+                binding.deviceIcon.setColorFilter(Color.parseColor("#333333")) // Black/Gray
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -236,10 +267,17 @@ class RecordingFragment : Fragment() {
         warmupDone = false
         lastPeakUpdateTime = 0L
         totalSamplesProcessed = 0L
-        // Keep empty LineData so the persistent grid stays visible
-        binding.waveformChart.data = LineData()
+
+        // Re-apply dummy data so the perfect grid stays visible on reset
+        val dummyDataSet = LineDataSet(listOf(Entry(0f, 0f), Entry(10f, 0f)), "").apply {
+            color = Color.TRANSPARENT
+            setDrawCircles(false)
+            setDrawValues(false)
+        }
+        binding.waveformChart.data = LineData(dummyDataSet)
         binding.waveformChart.moveViewToX(0f)
         binding.waveformChart.invalidate()
+
         binding.bpmText.text = "-- BPM"
     }
 
@@ -294,6 +332,7 @@ class RecordingFragment : Fragment() {
             binding.bpmText.text = if (bpm > 0) getString(R.string.bpm_format, bpm) else "-- BPM"
         }
     }
+
     private fun checkPermissionAndRecord() {
         if (ContextCompat.checkSelfPermission(
                 requireContext(), Manifest.permission.RECORD_AUDIO
@@ -574,19 +613,26 @@ class RecordingFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Recorder is null but state is RECORDING → we stopped and navigated to PlayerFragment,
-        // then the user pressed Discard and popped back here. Reset to idle.
-        if (taalRecorder == null && viewModel.uiState.value == RecordingUiState.RECORDING) {
+
+        checkDeviceConnectionStatus()
+        if (taalRecorder == null) {
             resetToIdle()
         }
+        // Recorder is null but state is RECORDING → we stopped and navigated to PlayerFragment,
+        // then the user pressed Discard and popped back here. Reset to idle.
+//        if (taalRecorder == null && viewModel.uiState.value == RecordingUiState.RECORDING) {
+//            resetToIdle()
+//        }
         // Commented out: old Save/Discard flow via AddPatientFragment
         // if (viewModel.uiState.value == RecordingUiState.STOPPED) {
         //     resetToIdle()
         // }
+
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        connectionReceiver?.unregister(requireContext())
         _binding = null
     }
 
