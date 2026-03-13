@@ -8,12 +8,12 @@
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\drawable\\ic_pregnancy_selected.xml"
     },
     {
-        "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\drawable_bg_camera_circle.xml.flat",
-        "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\drawable\\bg_camera_circle.xml"
-    },
-    {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\layout_dialog_save_emergency.xml.flat",
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\dialog_save_emergency.xml"
+    },
+    {
+        "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\drawable_bg_camera_circle.xml.flat",
+        "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\drawable\\bg_camera_circle.xml"
     },
     {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\drawable_ic_sync_badge.xml.flat",
@@ -36,16 +36,20 @@
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_faq.xml"
     },
     {
-        "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\drawable_ic_stop_recording.xml.flat",
-        "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\drawable\\ic_stop_recording.xml"
+        "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\drawable_ic_bluetooth.xml.flat",
+        "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\drawable\\ic_bluetooth.xml"
     },
     {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\layout_fragment_add_patient.xml.flat",
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_add_patient.xml"
     },
     {
-        "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\drawable_ic_bluetooth.xml.flat",
-        "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\drawable\\ic_bluetooth.xml"
+        "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\drawable_ic_stop_recording.xml.flat",
+        "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\drawable\\ic_stop_recording.xml"
+    },
+    {
+        "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\layout_fragment_saved_recordings.xml.flat",
+        "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_saved_recordings.xml"
     },
     {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\layout_activity_main.xml.flat",
@@ -76,16 +80,16 @@
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\item_faq.xml"
     },
     {
-        "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\drawable_bg_record_button.xml.flat",
-        "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\drawable\\bg_record_button.xml"
+        "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\layout_fragment_otp.xml.flat",
+        "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_otp.xml"
     },
     {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\drawable_ic_edit.xml.flat",
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\drawable\\ic_edit.xml"
     },
     {
-        "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\layout_fragment_otp.xml.flat",
-        "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_otp.xml"
+        "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\drawable_bg_record_button.xml.flat",
+        "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\drawable\\bg_record_button.xml"
     },
     {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\drawable_ic_crop.xml.flat",
@@ -94,6 +98,10 @@
     {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\layout_fragment_user_manual.xml.flat",
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_user_manual.xml"
+    },
+    {
+        "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\layout_fragment_save_recording.xml.flat",
+        "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_save_recording.xml"
     },
     {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\drawable_ic_stethoscope_teal.xml.flat",
@@ -180,6 +188,10 @@
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_privacy_policy.xml"
     },
     {
+        "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\drawable_ic_folder.xml.flat",
+        "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\drawable\\ic_folder.xml"
+    },
+    {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\drawable_ic_search.xml.flat",
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\drawable\\ic_search.xml"
     },
@@ -204,12 +216,12 @@
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\drawable\\ic_mail.xml"
     },
     {
-        "merged": "com.musediagnostics.taal.app-debug-53:/layout_fragment_recording.xml.flat",
-        "source": "com.musediagnostics.taal.app-main-55:/layout/fragment_recording.xml"
-    },
-    {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\layout_fragment_recording_library.xml.flat",
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_recording_library.xml"
+    },
+    {
+        "merged": "com.musediagnostics.taal.app-debug-53:/layout_fragment_player.xml.flat",
+        "source": "com.musediagnostics.taal.app-main-55:/layout/fragment_player.xml"
     },
     {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\drawable_ic_bluetooth_device.xml.flat",
@@ -368,12 +380,12 @@
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\drawable\\ic_sync_arrows.xml"
     },
     {
-        "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\layout_fragment_recording.xml.flat",
-        "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_recording.xml"
-    },
-    {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\drawable_ic_graduation.xml.flat",
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\drawable\\ic_graduation.xml"
+    },
+    {
+        "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\layout_fragment_recording.xml.flat",
+        "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_recording.xml"
     },
     {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\drawable_ic_arrow_back.xml.flat",
@@ -510,6 +522,10 @@
     {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\layout_fragment_pin_confirmed.xml.flat",
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_pin_confirmed.xml"
+    },
+    {
+        "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\layout_item_saved_recording.xml.flat",
+        "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\item_saved_recording.xml"
     },
     {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-debug-53:\\drawable_bg_filter_badge.xml.flat",

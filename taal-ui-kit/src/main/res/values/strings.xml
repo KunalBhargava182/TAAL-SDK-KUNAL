@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TAAL</string>
+
+    <!-- Recording -->
+    <string name="start_recording">Start Recording</string>
+    <string name="stop_recording">Stop Recording</string>
+    <string name="play_recording">Play Recording</string>
+    <string name="bpm_format">%d BPM</string>
+    <string name="timer_default">00:00:00</string>
+    <string name="recording_saved">Recording saved</string>
+
+    <!-- Filters -->
+    <string name="filter_heart">Heart</string>
+    <string name="filter_lungs">Lung</string>
+    <string name="filter_bowel">Bowel</string>
+    <string name="filter_pregnancy">Pregnancy</string>
+    <string name="filter_full_body">Full Body</string>
+
+    <!-- Equalizer -->
+    <string name="heart_sound">Heart Sound</string>
+    <string name="lungs_sound">Lungs Sound</string>
+    <string name="noise">Noise</string>
+    <string name="custom_1">Custom 1</string>
+    <string name="custom_2">Custom 2</string>
+    <string name="custom_3">Custom 3</string>
+    <string name="edit_equalizer">Edit Equalizer</string>
+
+    <!-- Device -->
+    <string name="usb_not_connected">TAAL device not connected</string>
+    <string name="usb_connected">TAAL device connected</string>
+
+    <!-- Save dialog -->
+    <string name="save_recording">Save Recording</string>
+    <string name="save_recording_subtitle">Enter a name for this recording</string>
+    <string name="file_name_hint">File name</string>
+    <string name="btn_save">Save</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_discard">Discard</string>
+</resources>

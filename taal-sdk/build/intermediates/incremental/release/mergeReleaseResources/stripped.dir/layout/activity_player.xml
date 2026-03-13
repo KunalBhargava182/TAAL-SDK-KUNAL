@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/timer_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="00:00"
+        android:textSize="48sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="24dp" />
+
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/waveform_chart"
+        android:layout_width="0dp"
+        android:layout_height="250dp"
+        android:layout_marginTop="24dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/timer_text" />
+
+    <TextView
+        android:id="@+id/eq_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Graphic EQ"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="24dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/waveform_chart" />
+
+    <!-- 20Hz Band -->
+    <TextView
+        android:id="@+id/eq_20hz_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="20Hz"
+        android:layout_marginTop="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/eq_title" />
+
+    <SeekBar
+        android:id="@+id/eq_20hz_slider"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:max="240"
+        android:progress="120"
+        android:layout_marginStart="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/eq_20hz_label"
+        app:layout_constraintTop_toTopOf="@id/eq_20hz_label" />
+
+    <!-- 50Hz Band -->
+    <TextView
+        android:id="@+id/eq_50hz_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="50Hz"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/eq_20hz_slider" />
+
+    <SeekBar
+        android:id="@+id/eq_50hz_slider"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:max="240"
+        android:progress="120"
+        android:layout_marginStart="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/eq_50hz_label"
+        app:layout_constraintTop_toTopOf="@id/eq_50hz_label" />
+
+    <!-- 100Hz Band -->
+    <TextView
+        android:id="@+id/eq_100hz_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="100Hz"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/eq_50hz_slider" />
+
+    <SeekBar
+        android:id="@+id/eq_100hz_slider"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:max="240"
+        android:progress="120"
+        android:layout_marginStart="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/eq_100hz_label"
+        app:layout_constraintTop_toTopOf="@id/eq_100hz_label" />
+
+    <!-- 200Hz Band -->
+    <TextView
+        android:id="@+id/eq_200hz_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="200Hz"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/eq_100hz_slider" />
+
+    <SeekBar
+        android:id="@+id/eq_200hz_slider"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:max="240"
+        android:progress="120"
+        android:layout_marginStart="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/eq_200hz_label"
+        app:layout_constraintTop_toTopOf="@id/eq_200hz_label" />
+
+    <!-- 600Hz Band -->
+    <TextView
+        android:id="@+id/eq_600hz_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="600Hz"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/eq_200hz_slider" />
+
+    <SeekBar
+        android:id="@+id/eq_600hz_slider"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:max="240"
+        android:progress="120"
+        android:layout_marginStart="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/eq_600hz_label"
+        app:layout_constraintTop_toTopOf="@id/eq_600hz_label" />
+
+    <Button
+        android:id="@+id/play_button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Play"
+        android:layout_marginTop="24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/eq_600hz_slider" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

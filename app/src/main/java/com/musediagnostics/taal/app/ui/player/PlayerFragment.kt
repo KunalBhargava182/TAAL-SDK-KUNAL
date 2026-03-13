@@ -13,7 +13,6 @@ import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
-import com.github.mikephil.charting.formatter.ValueFormatter
 import com.musediagnostics.taal.InvalidFileNameException
 import com.musediagnostics.taal.TaalPlayer
 import com.musediagnostics.taal.app.R
@@ -47,11 +46,13 @@ class PlayerFragment : Fragment() {
 
         val filePath = arguments?.getString("filePath") ?: ""
         val isNewRecording = arguments?.getBoolean("isNewRecording", false) ?: false
+        val filterName = arguments?.getString("filterName") ?: "HEART"
 
         // Save/Discard bar is only relevant for a freshly made recording
         binding.saveDiscardBar.visibility = if (isNewRecording) View.VISIBLE else View.GONE
 
         setupWaveformChart()
+        setupAmpSlider()
 
         // 1. Load the full waveform the moment the screen opens
         if (filePath.isNotEmpty()) {
@@ -79,11 +80,62 @@ class PlayerFragment : Fragment() {
         }
 
         binding.saveButton.setOnClickListener {
-            showSaveDiscardDialog(filePath)
+            if (isNewRecording) {
+                val bundle = Bundle().apply {
+                    putString("filePath", filePath)
+                    putString("filterName", filterName)
+                }
+                findNavController().navigate(R.id.action_player_to_saveRecording, bundle)
+            } else {
+                showSaveDiscardDialog(filePath)
+            }
         }
 
         binding.discardButton.setOnClickListener {
-            showSaveDiscardDialog(filePath)
+            if (isNewRecording) {
+                showDiscardConfirmation(filePath)
+            } else {
+                showSaveDiscardDialog(filePath)
+            }
+        }
+    }
+
+    private fun setupAmpSlider() {
+        binding.ampSlider.addOnChangeListener { _, value, _ ->
+            val db = value.toInt()
+            binding.ampLabel.text = "$db dB"
+            player?.setPreAmplification(db.toFloat())
+        }
+
+        binding.customDbToggle.setOnClickListener {
+            val isVisible = binding.customDbInputRow.visibility == View.VISIBLE
+            binding.customDbInputRow.visibility = if (isVisible) View.GONE else View.VISIBLE
+            binding.customDbChevron.rotation = if (isVisible) 0f else 180f
+        }
+
+        binding.customDbApply.setOnClickListener {
+            val input = binding.customDbInput.text?.toString()?.trim()
+            val db = input?.toFloatOrNull()
+            if (db == null || input.isNullOrEmpty()) {
+                Toast.makeText(requireContext(), "Please enter a valid dB value", Toast.LENGTH_SHORT).show()
+            } else {
+                binding.ampSlider.value = db.coerceIn(0f, 20f)
+                binding.ampLabel.text = "${db.toInt()} dB"
+                player?.setPreAmplification(db)
+                binding.customDbInputRow.visibility = View.GONE
+                binding.customDbChevron.rotation = 0f
+                val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE)
+                        as android.view.inputmethod.InputMethodManager
+                imm.hideSoftInputFromWindow(binding.customDbInput.windowToken, 0)
+            }
+        }
+
+        binding.customDbInfo.setOnClickListener {
+            com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Amplification Info")
+                .setMessage("Adjust playback volume amplification. Recommended max 20 dB.")
+                .setPositiveButton("Got it") { dialog, _ -> dialog.dismiss() }
+                .show()
         }
     }
 
@@ -107,8 +159,11 @@ class PlayerFragment : Fragment() {
             setDrawGridLines(true)
             gridColor = Color.parseColor("#F0F0F0")
             gridLineWidth = 1f
-            axisMinimum = -1f
-            axisMaximum = 1f
+
+            // Narrowed limits to make the waveform look taller (Vertical Zoom)
+            axisMinimum = -0.5f
+            axisMaximum = 0.5f
+
             setDrawLabels(false)
             setDrawAxisLine(false)
         }
@@ -116,13 +171,6 @@ class PlayerFragment : Fragment() {
         chart.axisRight.isEnabled = false
     }
 
-    /**
-     * Reads the .wav file in a background thread and plots the entire graph instantly.
-     */
-    /**
-     * Reads the .wav file in a background thread, plots the entire graph,
-     * and calculates the total duration to display immediately.
-     */
     private fun loadFullWaveform(filePath: String) {
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             try {
@@ -154,16 +202,19 @@ class PlayerFragment : Fragment() {
                     )
 
                     val dataSet = LineDataSet(entries, "Waveform").apply {
-                        color = Color.parseColor("#128CB2")
+                        // Blue color and thicker line
+                        color = Color.parseColor("#2D7DD2")
                         setDrawCircles(false)
                         setDrawValues(false)
-                        lineWidth = 1.0f
+                        lineWidth = 2.5f
                         mode = LineDataSet.Mode.LINEAR
                     }
                     binding.waveformChart.apply {
                         data = LineData(dataSet)
-                        // THIS IS THE KEY: Keep it zoomed to 10 seconds so it can scroll
-                        setVisibleXRangeMaximum(10f)
+
+                        // Reduced visible range to zoom in horizontally (4 seconds at a time)
+                        setVisibleXRangeMaximum(4f)
+
                         moveViewToX(0f) // Start at the beginning
                         setTouchEnabled(true)
                         isDragEnabled = true
@@ -189,8 +240,10 @@ class PlayerFragment : Fragment() {
                                 "%02d:%02d", totalSecs / 60, totalSecs % 60
                             )
 
-                            // PAN THE GRAPH: Smoothly scroll the chart exactly to the current playback time
-                            binding.waveformChart.moveViewToX(timestamp.toFloat())
+                            // PAN THE GRAPH: Offset by 2 seconds so the current time stays in the CENTER
+                            // (Because setVisibleXRangeMaximum is 4f, 2f is exactly the middle)
+                            val centerOffset = timestamp.toFloat() - 2f
+                            binding.waveformChart.moveViewToX(if (centerOffset < 0f) 0f else centerOffset)
                         }
                     }
                 }
@@ -225,6 +278,9 @@ class PlayerFragment : Fragment() {
             binding.waveformChart.moveViewToX(0f)
         } else {
             try {
+                // RESET GRAPH: Snap back to the beginning exactly when play is pressed
+                binding.waveformChart.moveViewToX(0f)
+
                 player?.prepare()
                 player?.start()
                 isPlaying = true
@@ -236,6 +292,19 @@ class PlayerFragment : Fragment() {
                     .show()
             }
         }
+    }
+
+    private fun showDiscardConfirmation(filePath: String) {
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Discard Recording")
+            .setMessage("Are you sure you want to discard this recording? It will be permanently deleted.")
+            .setPositiveButton("Discard") { _, _ ->
+                try {
+                    java.io.File(filePath).delete()
+                } catch (_: Exception) {
+                }
+                findNavController().navigateUp()
+            }.setNegativeButton("Cancel", null).show()
     }
 
     private fun showSaveDiscardDialog(filePath: String) {
@@ -270,5 +339,3 @@ class PlayerFragment : Fragment() {
         _binding = null
     }
 }
-
-//kunal

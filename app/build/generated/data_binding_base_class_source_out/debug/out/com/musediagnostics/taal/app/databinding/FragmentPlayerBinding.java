@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -14,6 +15,10 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.github.mikephil.charting.charts.LineChart;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.slider.Slider;
+import com.google.android.material.textfield.TextInputEditText;
 import com.musediagnostics.taal.app.R;
 import java.lang.NullPointerException;
 import java.lang.Override;
@@ -27,7 +32,34 @@ public final class FragmentPlayerBinding implements ViewBinding {
   public final TextView actionText;
 
   @NonNull
+  public final TextView ampLabel;
+
+  @NonNull
+  public final Slider ampSlider;
+
+  @NonNull
+  public final MaterialCardView ampSliderContainer;
+
+  @NonNull
   public final ImageButton backButton;
+
+  @NonNull
+  public final MaterialButton customDbApply;
+
+  @NonNull
+  public final ImageView customDbChevron;
+
+  @NonNull
+  public final ImageButton customDbInfo;
+
+  @NonNull
+  public final TextInputEditText customDbInput;
+
+  @NonNull
+  public final LinearLayout customDbInputRow;
+
+  @NonNull
+  public final LinearLayout customDbToggle;
 
   @NonNull
   public final Button discardButton;
@@ -57,14 +89,27 @@ public final class FragmentPlayerBinding implements ViewBinding {
   public final LineChart waveformChart;
 
   private FragmentPlayerBinding(@NonNull ConstraintLayout rootView, @NonNull TextView actionText,
-      @NonNull ImageButton backButton, @NonNull Button discardButton, @NonNull ImageButton eqButton,
-      @NonNull ImageButton playButton, @NonNull Button saveButton,
-      @NonNull LinearLayout saveDiscardBar, @NonNull TextView screenTitle,
-      @NonNull TextView timerText, @NonNull ConstraintLayout topBar,
+      @NonNull TextView ampLabel, @NonNull Slider ampSlider,
+      @NonNull MaterialCardView ampSliderContainer, @NonNull ImageButton backButton,
+      @NonNull MaterialButton customDbApply, @NonNull ImageView customDbChevron,
+      @NonNull ImageButton customDbInfo, @NonNull TextInputEditText customDbInput,
+      @NonNull LinearLayout customDbInputRow, @NonNull LinearLayout customDbToggle,
+      @NonNull Button discardButton, @NonNull ImageButton eqButton, @NonNull ImageButton playButton,
+      @NonNull Button saveButton, @NonNull LinearLayout saveDiscardBar,
+      @NonNull TextView screenTitle, @NonNull TextView timerText, @NonNull ConstraintLayout topBar,
       @NonNull LineChart waveformChart) {
     this.rootView = rootView;
     this.actionText = actionText;
+    this.ampLabel = ampLabel;
+    this.ampSlider = ampSlider;
+    this.ampSliderContainer = ampSliderContainer;
     this.backButton = backButton;
+    this.customDbApply = customDbApply;
+    this.customDbChevron = customDbChevron;
+    this.customDbInfo = customDbInfo;
+    this.customDbInput = customDbInput;
+    this.customDbInputRow = customDbInputRow;
+    this.customDbToggle = customDbToggle;
     this.discardButton = discardButton;
     this.eqButton = eqButton;
     this.playButton = playButton;
@@ -109,9 +154,63 @@ public final class FragmentPlayerBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.ampLabel;
+      TextView ampLabel = ViewBindings.findChildViewById(rootView, id);
+      if (ampLabel == null) {
+        break missingId;
+      }
+
+      id = R.id.ampSlider;
+      Slider ampSlider = ViewBindings.findChildViewById(rootView, id);
+      if (ampSlider == null) {
+        break missingId;
+      }
+
+      id = R.id.ampSliderContainer;
+      MaterialCardView ampSliderContainer = ViewBindings.findChildViewById(rootView, id);
+      if (ampSliderContainer == null) {
+        break missingId;
+      }
+
       id = R.id.backButton;
       ImageButton backButton = ViewBindings.findChildViewById(rootView, id);
       if (backButton == null) {
+        break missingId;
+      }
+
+      id = R.id.customDbApply;
+      MaterialButton customDbApply = ViewBindings.findChildViewById(rootView, id);
+      if (customDbApply == null) {
+        break missingId;
+      }
+
+      id = R.id.customDbChevron;
+      ImageView customDbChevron = ViewBindings.findChildViewById(rootView, id);
+      if (customDbChevron == null) {
+        break missingId;
+      }
+
+      id = R.id.customDbInfo;
+      ImageButton customDbInfo = ViewBindings.findChildViewById(rootView, id);
+      if (customDbInfo == null) {
+        break missingId;
+      }
+
+      id = R.id.customDbInput;
+      TextInputEditText customDbInput = ViewBindings.findChildViewById(rootView, id);
+      if (customDbInput == null) {
+        break missingId;
+      }
+
+      id = R.id.customDbInputRow;
+      LinearLayout customDbInputRow = ViewBindings.findChildViewById(rootView, id);
+      if (customDbInputRow == null) {
+        break missingId;
+      }
+
+      id = R.id.customDbToggle;
+      LinearLayout customDbToggle = ViewBindings.findChildViewById(rootView, id);
+      if (customDbToggle == null) {
         break missingId;
       }
 
@@ -169,9 +268,10 @@ public final class FragmentPlayerBinding implements ViewBinding {
         break missingId;
       }
 
-      return new FragmentPlayerBinding((ConstraintLayout) rootView, actionText, backButton,
-          discardButton, eqButton, playButton, saveButton, saveDiscardBar, screenTitle, timerText,
-          topBar, waveformChart);
+      return new FragmentPlayerBinding((ConstraintLayout) rootView, actionText, ampLabel, ampSlider,
+          ampSliderContainer, backButton, customDbApply, customDbChevron, customDbInfo,
+          customDbInput, customDbInputRow, customDbToggle, discardButton, eqButton, playButton,
+          saveButton, saveDiscardBar, screenTitle, timerText, topBar, waveformChart);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

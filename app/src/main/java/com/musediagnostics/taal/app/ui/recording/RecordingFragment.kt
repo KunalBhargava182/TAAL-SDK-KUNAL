@@ -146,6 +146,7 @@ class RecordingFragment : Fragment() {
         chart.data = LineData(dummyDataSet)
         chart.invalidate()
     }
+
     private fun setupPreAmpSlider() {
         // Init slider to viewModel's current value (survives config changes)
         binding.ampSlider.value = (viewModel.preAmpDb.value ?: 5).toFloat()
@@ -170,7 +171,9 @@ class RecordingFragment : Fragment() {
             val input = binding.customDbInput.text?.toString()?.trim()
             val db = input?.toFloatOrNull()
             if (db == null || input.isNullOrEmpty()) {
-                Toast.makeText(requireContext(), "Please enter a valid dB value", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(), "Please enter a valid dB value", Toast.LENGTH_SHORT
+                ).show()
             } else {
                 val dbInt = db.toInt()
                 viewModel.setPreAmp(dbInt)
@@ -182,8 +185,8 @@ class RecordingFragment : Fragment() {
                 binding.customDbInputRow.visibility = View.GONE
                 binding.customDbChevron.rotation = 0f
                 // Hide keyboard
-                val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE)
-                        as android.view.inputmethod.InputMethodManager
+                val imm =
+                    requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
                 imm.hideSoftInputFromWindow(binding.customDbInput.windowToken, 0)
             }
         }
@@ -193,8 +196,7 @@ class RecordingFragment : Fragment() {
             com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Amplification Info")
                 .setMessage("Recommended dB is max 20 dB for best audio experience.")
-                .setPositiveButton("Got it") { dialog, _ -> dialog.dismiss() }
-                .show()
+                .setPositiveButton("Got it") { dialog, _ -> dialog.dismiss() }.show()
         }
     }
 
@@ -294,13 +296,14 @@ class RecordingFragment : Fragment() {
             if (viewModel.currentRecordingPath.isNotEmpty()) {
                 val bundle = Bundle().apply {
                     putString("filePath", viewModel.currentRecordingPath)
+                    putString("filterName", viewModel.currentFilter.value ?: "HEART")
                 }
                 findNavController().navigate(R.id.action_recording_to_player, bundle)
             }
         }
 
         binding.folderButton.setOnClickListener {
-            findNavController().navigate(R.id.action_recording_to_library)
+            findNavController().navigate(R.id.action_recording_to_savedRecordings)
         }
 
         binding.settingsButton.setOnClickListener {
@@ -540,6 +543,7 @@ class RecordingFragment : Fragment() {
             val bundle = Bundle().apply {
                 putString("filePath", path)
                 putBoolean("isNewRecording", true)
+                putString("filterName", viewModel.currentFilter.value ?: "HEART")
             }
             findNavController().navigate(R.id.action_recording_to_player, bundle)
         }

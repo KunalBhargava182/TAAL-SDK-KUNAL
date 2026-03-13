@@ -112,7 +112,8 @@
       "Bash(Stop-Process -Force)",
       "Bash(Get-Process studio64 -ErrorAction SilentlyContinue)",
       "Bash(Write-Host \"Done killing processes\")",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(# Copy color file\ncp \"E:/AndroidProjects/TaalDemoApp/app/src/main/res/color/filter_icon_selector.xml\" \\\\\n   \"E:/AndroidProjects/TaalDemoApp/taal-ui-kit/src/main/res/color/filter_icon_selector.xml\" && echo \"Copied color\"\n\n# Copy menu file\nmkdir -p \"E:/AndroidProjects/TaalDemoApp/taal-ui-kit/src/main/res/menu\"\ncp \"E:/AndroidProjects/TaalDemoApp/app/src/main/res/menu/menu_eq_presets.xml\" \\\\\n   \"E:/AndroidProjects/TaalDemoApp/taal-ui-kit/src/main/res/menu/menu_eq_presets.xml\" && echo \"Copied menu\"\n\necho \"Done\")"
     ]
   }
 }

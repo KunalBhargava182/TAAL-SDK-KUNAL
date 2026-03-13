@@ -203,6 +203,9 @@
             android:id="@+id/action_recording_to_library"
             app:destination="@id/recordingLibraryFragment" />
         <action
+            android:id="@+id/action_recording_to_savedRecordings"
+            app:destination="@id/savedRecordingsFragment" />
+        <action
             android:id="@+id/action_recording_to_newRecording"
             app:destination="@id/newRecordingFragment" />
     </fragment>
@@ -231,6 +234,10 @@
             android:name="isNewRecording"
             android:defaultValue="false"
             app:argType="boolean" />
+        <argument
+            android:name="filterName"
+            android:defaultValue="HEART"
+            app:argType="string" />
         <action
             android:id="@+id/action_player_to_equalizer"
             app:destination="@id/equalizerFragment" />
@@ -240,6 +247,9 @@
         <action
             android:id="@+id/action_player_to_addPatient"
             app:destination="@id/addPatientFragment" />
+        <action
+            android:id="@+id/action_player_to_saveRecording"
+            app:destination="@id/saveRecordingFragment" />
     </fragment>
 
     <fragment
@@ -389,6 +399,36 @@
         <action
             android:id="@+id/action_testPlayer_to_addPatient"
             app:destination="@id/addPatientFragment" />
+    </fragment>
+
+    <!-- Save Recording Screen -->
+    <fragment
+        android:id="@+id/saveRecordingFragment"
+        android:name="com.musediagnostics.taal.app.ui.recording.SaveRecordingFragment"
+        android:label="Save Recording"
+        tools:layout="@layout/fragment_save_recording">
+        <argument
+            android:name="filePath"
+            android:defaultValue=""
+            app:argType="string" />
+        <argument
+            android:name="filterName"
+            android:defaultValue="HEART"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_saveRecording_to_savedRecordings"
+            app:destination="@id/savedRecordingsFragment" />
+    </fragment>
+
+    <!-- Saved Recordings List Screen -->
+    <fragment
+        android:id="@+id/savedRecordingsFragment"
+        android:name="com.musediagnostics.taal.app.ui.library.SavedRecordingsFragment"
+        android:label="Saved Recordings"
+        tools:layout="@layout/fragment_saved_recordings">
+        <action
+            android:id="@+id/action_savedRecordings_to_player"
+            app:destination="@id/playerFragment" />
     </fragment>
 
 </navigation>

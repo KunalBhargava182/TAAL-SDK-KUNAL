@@ -24,6 +24,10 @@
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_crop_recording.xml"
     },
     {
+        "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-mergeDebugResources-52:\\layout\\fragment_saved_recordings.xml",
+        "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_saved_recordings.xml"
+    },
+    {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-mergeDebugResources-52:\\layout\\item_patient_header.xml",
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\item_patient_header.xml"
     },
@@ -72,8 +76,16 @@
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_test_recording.xml"
     },
     {
+        "merged": "com.musediagnostics.taal.app-mergeDebugResources-52:/layout/fragment_player.xml",
+        "source": "com.musediagnostics.taal.app-main-55:/layout/fragment_player.xml"
+    },
+    {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-mergeDebugResources-52:\\layout\\fragment_sign_in.xml",
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_sign_in.xml"
+    },
+    {
+        "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-mergeDebugResources-52:\\layout\\item_saved_recording.xml",
+        "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\item_saved_recording.xml"
     },
     {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-mergeDebugResources-52:\\layout\\fragment_equalizer.xml",
@@ -132,10 +144,6 @@
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_faq.xml"
     },
     {
-        "merged": "com.musediagnostics.taal.app-mergeDebugResources-52:/layout/fragment_recording.xml",
-        "source": "com.musediagnostics.taal.app-main-55:/layout/fragment_recording.xml"
-    },
-    {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-mergeDebugResources-52:\\layout\\fragment_fingerprint_confirm.xml",
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_fingerprint_confirm.xml"
     },
@@ -146,6 +154,10 @@
     {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-mergeDebugResources-52:\\layout\\fragment_loading.xml",
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_loading.xml"
+    },
+    {
+        "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-mergeDebugResources-52:\\layout\\fragment_save_recording.xml",
+        "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_save_recording.xml"
     },
     {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-mergeDebugResources-52:\\layout\\fragment_profile.xml",
