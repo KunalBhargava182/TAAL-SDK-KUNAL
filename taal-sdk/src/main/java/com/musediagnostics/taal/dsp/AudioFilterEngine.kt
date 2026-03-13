@@ -6,12 +6,9 @@ class AudioFilterEngine(private val sampleRate: Int = 44100) {
 
     // Preset filter definitions
     enum class PresetFilter(val lowCut: Double, val highCut: Double) {
-        HEART(20.0, 250.0),
-        LUNGS(100.0, 600.0),
-        BOWEL(100.0, 600.0), // Same as lungs clinically
+        HEART(20.0, 250.0), LUNGS(100.0, 600.0), BOWEL(100.0, 600.0), // Same as lungs clinically
         PREGNANCY(20.0, 250.0), // Same as heart
-        FULL_BODY(20.0, 600.0),
-        NONE(20.0, 2000.0) // Full range but respect hard limit
+        FULL_BODY(20.0, 600.0), NONE(20.0, 2000.0) // Full range but respect hard limit
     }
 
     // 5-band graphic EQ state
@@ -37,10 +34,7 @@ class AudioFilterEngine(private val sampleRate: Int = 44100) {
     )
 
     private data class BiquadState(
-        var x1: Double = 0.0,
-        var x2: Double = 0.0,
-        var y1: Double = 0.0,
-        var y2: Double = 0.0
+        var x1: Double = 0.0, var x2: Double = 0.0, var y1: Double = 0.0, var y2: Double = 0.0
     )
 
     private val bandpassState = BiquadState()
@@ -77,16 +71,13 @@ class AudioFilterEngine(private val sampleRate: Int = 44100) {
     }
 
     fun setPreAmplification(gainDb: Float) {
-        preAmpGainDb = gainDb.coerceIn(0f, 10f)
+        preAmpGainDb = gainDb.coerceIn(0f, 20f)
     }
 
     private fun updateFilters() {
         // Update bandpass coefficients
         designBandpass(
-            bandpassCoeffs,
-            currentPreset.lowCut,
-            currentPreset.highCut,
-            sampleRate.toDouble()
+            bandpassCoeffs, currentPreset.lowCut, currentPreset.highCut, sampleRate.toDouble()
         )
 
         // Update graphic EQ peaking filters
@@ -98,10 +89,7 @@ class AudioFilterEngine(private val sampleRate: Int = 44100) {
     }
 
     private fun designBandpass(
-        coeffs: BiquadCoeffs,
-        lowCut: Double,
-        highCut: Double,
-        fs: Double
+        coeffs: BiquadCoeffs, lowCut: Double, highCut: Double, fs: Double
     ) {
         // Butterworth bandpass (2nd order)
         val centerFreq = sqrt(lowCut * highCut)
@@ -123,9 +111,7 @@ class AudioFilterEngine(private val sampleRate: Int = 44100) {
     }
 
     private fun updatePeakingFilter(
-        coeffs: BiquadCoeffs,
-        centerFreq: Double,
-        gainDb: Float
+        coeffs: BiquadCoeffs, centerFreq: Double, gainDb: Float
     ) {
         if (abs(gainDb) < 0.01f) {
             // Bypass filter (unity gain)
@@ -179,15 +165,10 @@ class AudioFilterEngine(private val sampleRate: Int = 44100) {
     }
 
     private fun processBiquad(
-        input: Double,
-        coeffs: BiquadCoeffs,
-        state: BiquadState
+        input: Double, coeffs: BiquadCoeffs, state: BiquadState
     ): Double {
-        val output = coeffs.b0 * input +
-                    coeffs.b1 * state.x1 +
-                    coeffs.b2 * state.x2 -
-                    coeffs.a1 * state.y1 -
-                    coeffs.a2 * state.y2
+        val output =
+            coeffs.b0 * input + coeffs.b1 * state.x1 + coeffs.b2 * state.x2 - coeffs.a1 * state.y1 - coeffs.a2 * state.y2
 
         // Update state
         state.x2 = state.x1

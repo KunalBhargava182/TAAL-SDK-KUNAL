@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -13,7 +14,10 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.github.mikephil.charting.charts.LineChart;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.slider.Slider;
+import com.google.android.material.textfield.TextInputEditText;
 import com.musediagnostics.taal.app.R;
 import java.lang.NullPointerException;
 import java.lang.Override;
@@ -27,10 +31,37 @@ public final class FragmentRecordingBinding implements ViewBinding {
   public final TextView actionText;
 
   @NonNull
+  public final TextView ampLabel;
+
+  @NonNull
+  public final Slider ampSlider;
+
+  @NonNull
+  public final MaterialCardView ampSliderContainer;
+
+  @NonNull
   public final LinearLayout bottomBar;
 
   @NonNull
   public final TextView bpmText;
+
+  @NonNull
+  public final MaterialButton customDbApply;
+
+  @NonNull
+  public final ImageView customDbChevron;
+
+  @NonNull
+  public final ImageButton customDbInfo;
+
+  @NonNull
+  public final TextInputEditText customDbInput;
+
+  @NonNull
+  public final LinearLayout customDbInputRow;
+
+  @NonNull
+  public final LinearLayout customDbToggle;
 
   @NonNull
   public final ImageButton deviceIcon;
@@ -99,7 +130,12 @@ public final class FragmentRecordingBinding implements ViewBinding {
   public final LineChart waveformChart;
 
   private FragmentRecordingBinding(@NonNull ConstraintLayout rootView, @NonNull TextView actionText,
-      @NonNull LinearLayout bottomBar, @NonNull TextView bpmText, @NonNull ImageButton deviceIcon,
+      @NonNull TextView ampLabel, @NonNull Slider ampSlider,
+      @NonNull MaterialCardView ampSliderContainer, @NonNull LinearLayout bottomBar,
+      @NonNull TextView bpmText, @NonNull MaterialButton customDbApply,
+      @NonNull ImageView customDbChevron, @NonNull ImageButton customDbInfo,
+      @NonNull TextInputEditText customDbInput, @NonNull LinearLayout customDbInputRow,
+      @NonNull LinearLayout customDbToggle, @NonNull ImageButton deviceIcon,
       @NonNull ImageButton filterBowel, @NonNull MaterialCardView filterContainer,
       @NonNull ImageButton filterHeart, @NonNull ImageButton filterInfo,
       @NonNull ImageButton filterLungs, @NonNull ImageButton filterPregnancy,
@@ -113,8 +149,17 @@ public final class FragmentRecordingBinding implements ViewBinding {
       @NonNull LineChart waveformChart) {
     this.rootView = rootView;
     this.actionText = actionText;
+    this.ampLabel = ampLabel;
+    this.ampSlider = ampSlider;
+    this.ampSliderContainer = ampSliderContainer;
     this.bottomBar = bottomBar;
     this.bpmText = bpmText;
+    this.customDbApply = customDbApply;
+    this.customDbChevron = customDbChevron;
+    this.customDbInfo = customDbInfo;
+    this.customDbInput = customDbInput;
+    this.customDbInputRow = customDbInputRow;
+    this.customDbToggle = customDbToggle;
     this.deviceIcon = deviceIcon;
     this.filterBowel = filterBowel;
     this.filterContainer = filterContainer;
@@ -172,6 +217,24 @@ public final class FragmentRecordingBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.ampLabel;
+      TextView ampLabel = ViewBindings.findChildViewById(rootView, id);
+      if (ampLabel == null) {
+        break missingId;
+      }
+
+      id = R.id.ampSlider;
+      Slider ampSlider = ViewBindings.findChildViewById(rootView, id);
+      if (ampSlider == null) {
+        break missingId;
+      }
+
+      id = R.id.ampSliderContainer;
+      MaterialCardView ampSliderContainer = ViewBindings.findChildViewById(rootView, id);
+      if (ampSliderContainer == null) {
+        break missingId;
+      }
+
       id = R.id.bottomBar;
       LinearLayout bottomBar = ViewBindings.findChildViewById(rootView, id);
       if (bottomBar == null) {
@@ -181,6 +244,42 @@ public final class FragmentRecordingBinding implements ViewBinding {
       id = R.id.bpmText;
       TextView bpmText = ViewBindings.findChildViewById(rootView, id);
       if (bpmText == null) {
+        break missingId;
+      }
+
+      id = R.id.customDbApply;
+      MaterialButton customDbApply = ViewBindings.findChildViewById(rootView, id);
+      if (customDbApply == null) {
+        break missingId;
+      }
+
+      id = R.id.customDbChevron;
+      ImageView customDbChevron = ViewBindings.findChildViewById(rootView, id);
+      if (customDbChevron == null) {
+        break missingId;
+      }
+
+      id = R.id.customDbInfo;
+      ImageButton customDbInfo = ViewBindings.findChildViewById(rootView, id);
+      if (customDbInfo == null) {
+        break missingId;
+      }
+
+      id = R.id.customDbInput;
+      TextInputEditText customDbInput = ViewBindings.findChildViewById(rootView, id);
+      if (customDbInput == null) {
+        break missingId;
+      }
+
+      id = R.id.customDbInputRow;
+      LinearLayout customDbInputRow = ViewBindings.findChildViewById(rootView, id);
+      if (customDbInputRow == null) {
+        break missingId;
+      }
+
+      id = R.id.customDbToggle;
+      LinearLayout customDbToggle = ViewBindings.findChildViewById(rootView, id);
+      if (customDbToggle == null) {
         break missingId;
       }
 
@@ -316,11 +415,13 @@ public final class FragmentRecordingBinding implements ViewBinding {
         break missingId;
       }
 
-      return new FragmentRecordingBinding((ConstraintLayout) rootView, actionText, bottomBar,
-          bpmText, deviceIcon, filterBowel, filterContainer, filterHeart, filterInfo, filterLungs,
-          filterPregnancy, filterRow, folderButton, menuButton, playPauseButton,
-          preRecordingButtons, recordButton, recordingButtons, saveCheckButton, screenTitle,
-          settingsButton, syncButton, timerText, topBar, trashButton, waveformChart);
+      return new FragmentRecordingBinding((ConstraintLayout) rootView, actionText, ampLabel,
+          ampSlider, ampSliderContainer, bottomBar, bpmText, customDbApply, customDbChevron,
+          customDbInfo, customDbInput, customDbInputRow, customDbToggle, deviceIcon, filterBowel,
+          filterContainer, filterHeart, filterInfo, filterLungs, filterPregnancy, filterRow,
+          folderButton, menuButton, playPauseButton, preRecordingButtons, recordButton,
+          recordingButtons, saveCheckButton, screenTitle, settingsButton, syncButton, timerText,
+          topBar, trashButton, waveformChart);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

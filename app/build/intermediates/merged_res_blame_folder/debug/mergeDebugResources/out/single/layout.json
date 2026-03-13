@@ -12,12 +12,12 @@
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\dialog_rename.xml"
     },
     {
-        "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-mergeDebugResources-52:\\layout\\fragment_test_player.xml",
-        "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_test_player.xml"
-    },
-    {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-mergeDebugResources-52:\\layout\\fragment_change_pin.xml",
         "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_change_pin.xml"
+    },
+    {
+        "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-mergeDebugResources-52:\\layout\\fragment_test_player.xml",
+        "source": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-main-55:\\layout\\fragment_test_player.xml"
     },
     {
         "merged": "C:\\Users\\kunal\\.gradle\\daemon\\8.10.2\\com.musediagnostics.taal.app-mergeDebugResources-52:\\layout\\fragment_crop_recording.xml",

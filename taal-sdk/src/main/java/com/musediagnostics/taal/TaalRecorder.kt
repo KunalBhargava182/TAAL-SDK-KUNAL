@@ -28,15 +28,18 @@ class TaalRecorder(private val context: Context) {
         }
 
         audioCapture.onAudioData = { data, timestamp ->
+            // Apply pre-amp + bandpass preset filter + graphic EQ
+            val filtered = filterEngine.processBlock(data)
+
             onInfoListener?.onProgressUpdate(
                 TaalAudioCapture.SAMPLE_RATE,
-                data.size,
+                filtered.size,
                 timestamp,
-                data
+                filtered
             )
 
             // Convert to ByteArray for live stream
-            val bytes = floatArrayToBytes(data)
+            val bytes = floatArrayToBytes(filtered)
             onLiveStreamListener?.onNewStream(bytes)
         }
     }
@@ -60,7 +63,7 @@ class TaalRecorder(private val context: Context) {
     }
 
     fun setPreAmplification(db: Int) {
-        preAmplificationDb = db.coerceIn(0, 10)
+        preAmplificationDb = db.coerceIn(0, 20)
         filterEngine.setPreAmplification(db.toFloat())
     }
 

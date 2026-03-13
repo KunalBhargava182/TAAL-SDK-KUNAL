@@ -3,69 +3,71 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8F9FA"> <androidx.constraintlayout.widget.ConstraintLayout
-    android:id="@+id/topBar"
-    android:layout_width="match_parent"
-    android:layout_height="56dp"
-    android:background="@color/white"
-    android:elevation="2dp"
-    android:paddingStart="@dimen/spacing_md"
-    android:paddingEnd="@dimen/spacing_md"
-    app:layout_constraintTop_toTopOf="parent">
+    android:background="#F8F9FA">
 
-    <ImageButton
-        android:id="@+id/menuButton"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Menu"
-        android:scaleType="centerInside"
-        android:src="@drawable/ic_menu_hamburger"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@color/white"
+        android:elevation="2dp"
+        android:paddingStart="@dimen/spacing_md"
+        android:paddingEnd="@dimen/spacing_md"
+        app:layout_constraintTop_toTopOf="parent">
 
-    <TextView
-        android:id="@+id/screenTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="TAAL Recorder"
-        android:textColor="@color/text_primary"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        <ImageButton
+            android:id="@+id/menuButton"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Menu"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_menu_hamburger"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageButton
-        android:id="@+id/deviceIcon"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_device_toggle"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="#333333" />
+        <TextView
+            android:id="@+id/screenTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TAAL Recorder"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageButton
-        android:id="@+id/syncButton"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_marginEnd="8dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Sync"
-        android:scaleType="centerInside"
-        android:src="@drawable/ic_sync_arrows"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/deviceIcon"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/teal_primary" />
+        <ImageButton
+            android:id="@+id/deviceIcon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_device_toggle"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="#333333" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <ImageButton
+            android:id="@+id/syncButton"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Sync"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_sync_arrows"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/deviceIcon"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/teal_primary" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <TextView
         android:id="@+id/timerText"
@@ -87,11 +89,11 @@
         app:cardBackgroundColor="@color/white"
         app:cardCornerRadius="24dp"
         app:cardElevation="4dp"
-        app:strokeColor="#E0E0E0"
-        app:strokeWidth="1dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/timerText">
+        app:layout_constraintTop_toBottomOf="@id/timerText"
+        app:strokeColor="#E0E0E0"
+        app:strokeWidth="1dp">
 
         <LinearLayout
             android:id="@+id/filterRow"
@@ -110,7 +112,12 @@
                 android:padding="12dp"
                 android:scaleType="centerInside"
                 android:src="@drawable/ic_heart"
-                app:tint="@color/filter_icon_selector" /> <View android:layout_width="1dp" android:layout_height="24dp" android:background="#EEEEEE" />
+                app:tint="@color/filter_icon_selector" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="24dp"
+                android:background="#EEEEEE" />
 
             <ImageButton
                 android:id="@+id/filterLungs"
@@ -121,7 +128,12 @@
                 android:padding="12dp"
                 android:scaleType="centerInside"
                 android:src="@drawable/ic_lungs"
-                app:tint="@color/filter_icon_selector" /> <View android:layout_width="1dp" android:layout_height="24dp" android:background="#EEEEEE" />
+                app:tint="@color/filter_icon_selector" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="24dp"
+                android:background="#EEEEEE" />
 
             <ImageButton
                 android:id="@+id/filterBowel"
@@ -132,7 +144,12 @@
                 android:padding="12dp"
                 android:scaleType="centerInside"
                 android:src="@drawable/ic_bowel"
-                app:tint="@color/filter_icon_selector" /> <View android:layout_width="1dp" android:layout_height="24dp" android:background="#EEEEEE" />
+                app:tint="@color/filter_icon_selector" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="24dp"
+                android:background="#EEEEEE" />
 
             <ImageButton
                 android:id="@+id/filterPregnancy"
@@ -143,7 +160,12 @@
                 android:padding="12dp"
                 android:scaleType="centerInside"
                 android:src="@drawable/ic_pregnancy"
-                app:tint="@color/filter_icon_selector" /> <View android:layout_width="1dp" android:layout_height="24dp" android:background="#EEEEEE" />
+                app:tint="@color/filter_icon_selector" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="24dp"
+                android:background="#EEEEEE" />
 
             <ImageButton
                 android:id="@+id/filterInfo"
@@ -154,7 +176,168 @@
                 android:padding="12dp"
                 android:scaleType="centerInside"
                 android:src="@drawable/ic_accessibility"
-                app:tint="@color/filter_icon_selector" /> </LinearLayout>    </com.google.android.material.card.MaterialCardView>
+                app:tint="@color/filter_icon_selector" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/ampSliderContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        app:cardBackgroundColor="@color/white"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/filterContainer"
+        app:strokeColor="#E0E0E0"
+        app:strokeWidth="1dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Slider row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingTop="6dp"
+                android:paddingEnd="14dp"
+                android:paddingBottom="2dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="Amplification"
+                    android:src="@drawable/ic_volume_up"
+                    app:tint="#128CB2" />
+
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/ampSlider"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:stepSize="1"
+                    android:value="5"
+                    android:valueFrom="0"
+                    android:valueTo="20"
+                    app:haloColor="#1A128CB2"
+                    app:labelBehavior="gone"
+                    app:thumbColor="#128CB2"
+                    app:thumbRadius="8dp"
+                    app:trackColorActive="#128CB2"
+                    app:trackColorInactive="#C8E6F5"
+                    app:trackHeight="4dp" />
+
+                <TextView
+                    android:id="@+id/ampLabel"
+                    android:layout_width="44dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:text="5 dB"
+                    android:textColor="#128CB2"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <!-- Dropdown toggle row -->
+            <LinearLayout
+                android:id="@+id/customDbToggle"
+                android:layout_width="match_parent"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingEnd="10dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Custom dB"
+                    android:textColor="#888888"
+                    android:textSize="11sp" />
+
+                <ImageView
+                    android:id="@+id/customDbChevron"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_expand_more"
+                    app:tint="#888888" />
+
+            </LinearLayout>
+
+            <!-- Expandable custom input row (hidden by default) -->
+            <LinearLayout
+                android:id="@+id/customDbInputRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="14dp"
+                android:paddingBottom="10dp"
+                android:visibility="gone">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:hint="Enter dB value"
+                    app:boxStrokeColor="#128CB2"
+                    app:hintTextColor="#128CB2">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/customDbInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="numberDecimal"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/customDbApply"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:text="Apply"
+                    android:textSize="12sp"
+                    app:backgroundTint="#128CB2"
+                    app:cornerRadius="8dp" />
+
+                <ImageButton
+                    android:id="@+id/customDbInfo"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Info"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_info"
+                    app:tint="#888888" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
 
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/waveformChart"
@@ -162,10 +345,10 @@
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bpmText"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/filterContainer"
-        app:layout_constraintBottom_toTopOf="@id/bpmText" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ampSliderContainer" />
 
     <TextView
         android:id="@+id/bpmText"

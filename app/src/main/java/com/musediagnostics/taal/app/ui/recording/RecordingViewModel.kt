@@ -30,6 +30,9 @@ class RecordingViewModel(application: Application) : AndroidViewModel(applicatio
     private val _bpm = MutableLiveData(0)
     val bpm: LiveData<Int> = _bpm
 
+    private val _preAmpDb = MutableLiveData(5)
+    val preAmpDb: LiveData<Int> = _preAmpDb
+
     var currentRecordingPath: String = ""
 
     fun setUiState(state: RecordingUiState) {
@@ -46,6 +49,10 @@ class RecordingViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun setBpm(bpm: Int) {
         _bpm.value = bpm
+    }
+
+    fun setPreAmp(db: Int) {
+        _preAmpDb.value = db.coerceIn(0, 20)
     }
 
     fun formatTimer(seconds: Int): String {

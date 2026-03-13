@@ -94,6 +94,7 @@ class RecordingFragment : Fragment() {
 
         setupWaveformChart()
         setupFilterButtons()
+        setupPreAmpSlider()
         setupButtons()
         observeState()
         setupConnectionReceiver()
@@ -145,6 +146,58 @@ class RecordingFragment : Fragment() {
         chart.data = LineData(dummyDataSet)
         chart.invalidate()
     }
+    private fun setupPreAmpSlider() {
+        // Init slider to viewModel's current value (survives config changes)
+        binding.ampSlider.value = (viewModel.preAmpDb.value ?: 5).toFloat()
+        binding.ampLabel.text = "${viewModel.preAmpDb.value ?: 5} dB"
+
+        binding.ampSlider.addOnChangeListener { _, value, _ ->
+            val db = value.toInt()
+            viewModel.setPreAmp(db)
+            binding.ampLabel.text = "$db dB"
+            taalRecorder?.setPreAmplification(db)
+        }
+
+        // Dropdown toggle
+        binding.customDbToggle.setOnClickListener {
+            val isVisible = binding.customDbInputRow.visibility == View.VISIBLE
+            binding.customDbInputRow.visibility = if (isVisible) View.GONE else View.VISIBLE
+            binding.customDbChevron.rotation = if (isVisible) 0f else 180f
+        }
+
+        // Apply button
+        binding.customDbApply.setOnClickListener {
+            val input = binding.customDbInput.text?.toString()?.trim()
+            val db = input?.toFloatOrNull()
+            if (db == null || input.isNullOrEmpty()) {
+                Toast.makeText(requireContext(), "Please enter a valid dB value", Toast.LENGTH_SHORT).show()
+            } else {
+                val dbInt = db.toInt()
+                viewModel.setPreAmp(dbInt)
+                // Clamp slider to its 0–20 visual range but apply any value to the recorder
+                binding.ampSlider.value = dbInt.toFloat().coerceIn(0f, 20f)
+                binding.ampLabel.text = "$dbInt dB"
+                taalRecorder?.setPreAmplification(dbInt)
+                // Collapse the panel after applying
+                binding.customDbInputRow.visibility = View.GONE
+                binding.customDbChevron.rotation = 0f
+                // Hide keyboard
+                val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE)
+                        as android.view.inputmethod.InputMethodManager
+                imm.hideSoftInputFromWindow(binding.customDbInput.windowToken, 0)
+            }
+        }
+
+        // Info button
+        binding.customDbInfo.setOnClickListener {
+            com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Amplification Info")
+                .setMessage("Recommended dB is max 20 dB for best audio experience.")
+                .setPositiveButton("Got it") { dialog, _ -> dialog.dismiss() }
+                .show()
+        }
+    }
+
     private fun setupFilterButtons() {
         val filters = mapOf(
             binding.filterHeart to "HEART",
@@ -287,23 +340,31 @@ class RecordingFragment : Fragment() {
                 RecordingUiState.IDLE -> {
                     binding.actionText.text = getString(R.string.start_recording)
                     binding.recordButton.visibility = View.VISIBLE
+                    binding.bottomBar.visibility = View.VISIBLE
                     binding.preRecordingButtons.visibility = View.VISIBLE
                     binding.recordingButtons.visibility = View.GONE
-
-                    // Set to your initial record icon when idle
                     binding.recordButton.setImageResource(R.drawable.ic_recording_start1)
-
                     binding.timerText.text = getString(R.string.timer_default)
+                    // Unlock amp controls
+                    binding.ampSlider.isEnabled = true
+                    binding.customDbToggle.isEnabled = true
+                    binding.ampSliderContainer.alpha = 1f
                 }
 
                 RecordingUiState.RECORDING -> {
                     binding.actionText.text = getString(R.string.stop_recording)
                     binding.recordButton.visibility = View.VISIBLE
+                    // Hide bottom bar so chart expands to fill the freed space
+                    binding.bottomBar.visibility = View.GONE
                     binding.preRecordingButtons.visibility = View.GONE
                     binding.recordingButtons.visibility = View.GONE
-
-                    // Toggle to your professional stop icon while actively recording
                     binding.recordButton.setImageResource(R.drawable.ic_recording_stop)
+                    // Lock amp controls — collapse custom panel and disable interaction
+                    binding.customDbInputRow.visibility = View.GONE
+                    binding.customDbChevron.rotation = 0f
+                    binding.ampSlider.isEnabled = false
+                    binding.customDbToggle.isEnabled = false
+                    binding.ampSliderContainer.alpha = 0.55f
                 }
 
                 // RecordingUiState.STOPPED -> {
@@ -357,7 +418,7 @@ class RecordingFragment : Fragment() {
                 setRawAudioFilePath(filePath)
                 setRecordingTime(300) // 5 minutes max
                 setPlayback(false)
-                setPreAmplification(5)
+                setPreAmplification(viewModel.preAmpDb.value ?: 5)
                 setPreFilter(preFilter)
 
                 onInfoListener = object : TaalRecorder.OnInfoListener {
@@ -618,6 +679,13 @@ class RecordingFragment : Fragment() {
         if (taalRecorder == null) {
             resetToIdle()
         }
+        // Reset pre-amp slider to default 5dB on every resume
+        viewModel.setPreAmp(5)
+        binding.ampSlider.value = 5f
+        binding.ampLabel.text = "5 dB"
+        binding.customDbInputRow.visibility = View.GONE
+        binding.customDbChevron.rotation = 0f
+        binding.customDbInput.text?.clear()
         // Recorder is null but state is RECORDING → we stopped and navigated to PlayerFragment,
         // then the user pressed Discard and popped back here. Reset to idle.
 //        if (taalRecorder == null && viewModel.uiState.value == RecordingUiState.RECORDING) {

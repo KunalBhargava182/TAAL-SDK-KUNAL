@@ -119,6 +119,10 @@ class PlayerFragment : Fragment() {
     /**
      * Reads the .wav file in a background thread and plots the entire graph instantly.
      */
+    /**
+     * Reads the .wav file in a background thread, plots the entire graph,
+     * and calculates the total duration to display immediately.
+     */
     private fun loadFullWaveform(filePath: String) {
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             try {
@@ -128,20 +132,27 @@ class PlayerFragment : Fragment() {
                 val bytes = file.readBytes()
                 val dataSize = bytes.size - 44
                 val totalSamples = dataSize / 2
-                val sampleStep = maxOf(1, totalSamples / 3000)
+                val totalDurationSeconds = (totalSamples / INPUT_SAMPLE_RATE).toInt()
 
+                val sampleStep = maxOf(1, totalSamples / 3000)
                 val entries = ArrayList<Entry>()
                 var sampleIndex = 0
+
                 for (i in 44 until bytes.size - 1 step sampleStep * 2) {
                     val low = bytes[i].toInt() and 0xFF
                     val high = bytes[i + 1].toInt() shl 8
                     val sample = (high or low).toShort().toFloat() / 32768f
-                    entries.add(Entry((sampleIndex.toFloat() / TestPlayerFragment.Companion.INPUT_SAMPLE_RATE), sample))
+                    entries.add(Entry((sampleIndex.toFloat() / INPUT_SAMPLE_RATE), sample))
                     sampleIndex += sampleStep
                 }
 
                 withContext(Dispatchers.Main) {
                     if (_binding == null) return@withContext
+
+                    binding.timerText.text = String.format(
+                        "%02d:%02d", totalDurationSeconds / 60, totalDurationSeconds % 60
+                    )
+
                     val dataSet = LineDataSet(entries, "Waveform").apply {
                         color = Color.parseColor("#128CB2")
                         setDrawCircles(false)
@@ -151,14 +162,18 @@ class PlayerFragment : Fragment() {
                     }
                     binding.waveformChart.apply {
                         data = LineData(dataSet)
-                        setVisibleXRangeMaximum(Float.MAX_VALUE)
+                        // THIS IS THE KEY: Keep it zoomed to 10 seconds so it can scroll
+                        setVisibleXRangeMaximum(10f)
+                        moveViewToX(0f) // Start at the beginning
                         setTouchEnabled(true)
                         isDragEnabled = true
                         setScaleEnabled(true)
                         invalidate()
                     }
                 }
-            } catch (e: Exception) { e.printStackTrace() }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -169,11 +184,13 @@ class PlayerFragment : Fragment() {
                 onPlaybackProgress = { timestamp, _ ->
                     activity?.runOnUiThread {
                         if (isAdded && _binding != null) {
-                            // Update timer during playback
                             val totalSecs = timestamp.toInt()
                             binding.timerText.text = String.format(
                                 "%02d:%02d", totalSecs / 60, totalSecs % 60
                             )
+
+                            // PAN THE GRAPH: Smoothly scroll the chart exactly to the current playback time
+                            binding.waveformChart.moveViewToX(timestamp.toFloat())
                         }
                     }
                 }
@@ -182,6 +199,10 @@ class PlayerFragment : Fragment() {
                         if (isAdded && _binding != null) {
                             isPlaying = false
                             binding.actionText.text = getString(R.string.play_recording)
+                            binding.playButton.setImageResource(R.drawable.ic_play_circle)
+
+                            // Snap graph back to the beginning when finished
+                            binding.waveformChart.moveViewToX(0f)
                         }
                     }
                 }
@@ -199,6 +220,9 @@ class PlayerFragment : Fragment() {
             isPlaying = false
             binding.actionText.text = getString(R.string.play_recording)
             binding.playButton.setImageResource(R.drawable.ic_play_circle)
+
+            // Snap graph back to the beginning when manually stopped
+            binding.waveformChart.moveViewToX(0f)
         } else {
             try {
                 player?.prepare()
@@ -246,3 +270,5 @@ class PlayerFragment : Fragment() {
         _binding = null
     }
 }
+
+//kunal

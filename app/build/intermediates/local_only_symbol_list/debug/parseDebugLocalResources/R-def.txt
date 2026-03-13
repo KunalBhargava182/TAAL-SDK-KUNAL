@@ -154,6 +154,7 @@ drawable ic_sync_badge
 drawable ic_three_dots_gray
 drawable ic_three_dots_red
 drawable ic_trash
+drawable ic_volume_up
 drawable selector_chip_background
 id aboutUsFragment
 id actionText
@@ -198,6 +199,9 @@ id addNewPatientOption
 id addPatientFragment
 id ageDropdown
 id ageText
+id ampLabel
+id ampSlider
+id ampSliderContainer
 id amplifyCheckbox
 id amplifyLabel
 id amplifyRow
@@ -238,6 +242,12 @@ id currentPinInput
 id currentPinLayout
 id currentPinRow
 id currentPlanCard
+id customDbApply
+id customDbChevron
+id customDbInfo
+id customDbInput
+id customDbInputRow
+id customDbToggle
 id degreeDropdown
 id degreeLayout
 id demographicsText
