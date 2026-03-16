@@ -194,7 +194,7 @@ class TaalPlayer(private val context: Context) {
     private fun convertBytesToFloat(bytes: ByteArray, floats: FloatArray, bytesRead: Int) {
         for (i in 0 until bytesRead / 2) {
             val sample = ((bytes[i * 2 + 1].toInt() shl 8) or
-                          (bytes[i * 2].toInt() and 0xff)).toShort()
+                    (bytes[i * 2].toInt() and 0xff)).toShort()
             floats[i] = sample / 32768f
         }
     }

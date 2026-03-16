@@ -46,7 +46,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_device_toggle"
+            android:src="@drawable/icon_taal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -229,7 +229,7 @@
                     android:stepSize="1"
                     android:value="5"
                     android:valueFrom="0"
-                    android:valueTo="20"
+                    android:valueTo="30"
                     app:haloColor="#1A128CB2"
                     app:labelBehavior="gone"
                     app:thumbColor="#128CB2"
@@ -250,90 +250,6 @@
 
             </LinearLayout>
 
-            <!-- Dropdown toggle row -->
-            <LinearLayout
-                android:id="@+id/customDbToggle"
-                android:layout_width="match_parent"
-                android:layout_height="32dp"
-                android:background="?attr/selectableItemBackground"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingStart="14dp"
-                android:paddingEnd="10dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Custom dB"
-                    android:textColor="#888888"
-                    android:textSize="11sp" />
-
-                <ImageView
-                    android:id="@+id/customDbChevron"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:src="@drawable/ic_expand_more"
-                    app:tint="#888888" />
-
-            </LinearLayout>
-
-            <!-- Expandable custom input row (hidden by default) -->
-            <LinearLayout
-                android:id="@+id/customDbInputRow"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingStart="14dp"
-                android:paddingTop="4dp"
-                android:paddingEnd="14dp"
-                android:paddingBottom="10dp"
-                android:visibility="gone">
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1"
-                    android:hint="Enter dB value"
-                    app:boxStrokeColor="#128CB2"
-                    app:hintTextColor="#128CB2">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/customDbInput"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="numberDecimal"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/customDbApply"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
-                    android:text="Apply"
-                    android:textSize="12sp"
-                    app:backgroundTint="#128CB2"
-                    app:cornerRadius="8dp" />
-
-                <ImageButton
-                    android:id="@+id/customDbInfo"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:layout_marginStart="4dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Info"
-                    android:padding="6dp"
-                    android:src="@drawable/ic_info"
-                    app:tint="#888888" />
-
-            </LinearLayout>
 
         </LinearLayout>
 

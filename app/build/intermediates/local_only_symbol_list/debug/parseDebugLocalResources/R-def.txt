@@ -156,6 +156,7 @@ drawable ic_three_dots_gray
 drawable ic_three_dots_red
 drawable ic_trash
 drawable ic_volume_up
+drawable icon_taal
 drawable selector_chip_background
 id aboutUsFragment
 id actionText
@@ -248,12 +249,6 @@ id currentPinInput
 id currentPinLayout
 id currentPinRow
 id currentPlanCard
-id customDbApply
-id customDbChevron
-id customDbInfo
-id customDbInput
-id customDbInputRow
-id customDbToggle
 id degreeDropdown
 id degreeLayout
 id demographicsText

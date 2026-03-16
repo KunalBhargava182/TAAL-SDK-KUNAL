@@ -71,7 +71,8 @@ class AudioFilterEngine(private val sampleRate: Int = 44100) {
     }
 
     fun setPreAmplification(gainDb: Float) {
-        preAmpGainDb = gainDb.coerceIn(0f, 20f)
+        preAmpGainDb = gainDb.coerceIn(0f, 30f)
+
     }
 
     private fun updateFilters() {
@@ -158,7 +159,9 @@ class AudioFilterEngine(private val sampleRate: Int = 44100) {
 
             // Hard limit at 2000Hz is built into filter design
             // Additional safety: clip to prevent overflow
-            output[i] = sample.toFloat().coerceIn(-1f, 1f)
+            // output[i] = sample.toFloat().coerceIn(-1f, 1f)
+            output[i] = tanh(sample).toFloat()
+
         }
 
         return output

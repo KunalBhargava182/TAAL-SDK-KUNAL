@@ -3210,6 +3210,7 @@ drawable ic_three_dots_gray
 drawable ic_three_dots_red
 drawable ic_trash
 drawable ic_volume_up
+drawable icon_taal
 drawable m3_avd_hide_password
 drawable m3_avd_show_password
 drawable m3_bottom_sheet_drag_handle
@@ -3518,12 +3519,6 @@ id currentPinRow
 id currentPlanCard
 id currentState
 id custom
-id customDbApply
-id customDbChevron
-id customDbInfo
-id customDbInput
-id customDbInputRow
-id customDbToggle
 id customPanel
 id cut
 id date_picker_actions

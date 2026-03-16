@@ -48,13 +48,11 @@ class PlayerFragment : Fragment() {
         val isNewRecording = arguments?.getBoolean("isNewRecording", false) ?: false
         val filterName = arguments?.getString("filterName") ?: "HEART"
 
-        // Save/Discard bar is only relevant for a freshly made recording
         binding.saveDiscardBar.visibility = if (isNewRecording) View.VISIBLE else View.GONE
 
         setupWaveformChart()
         setupAmpSlider()
 
-        // 1. Load the full waveform the moment the screen opens
         if (filePath.isNotEmpty()) {
             loadFullWaveform(filePath)
             setupPlayer(filePath)
@@ -106,37 +104,6 @@ class PlayerFragment : Fragment() {
             binding.ampLabel.text = "$db dB"
             player?.setPreAmplification(db.toFloat())
         }
-
-        binding.customDbToggle.setOnClickListener {
-            val isVisible = binding.customDbInputRow.visibility == View.VISIBLE
-            binding.customDbInputRow.visibility = if (isVisible) View.GONE else View.VISIBLE
-            binding.customDbChevron.rotation = if (isVisible) 0f else 180f
-        }
-
-        binding.customDbApply.setOnClickListener {
-            val input = binding.customDbInput.text?.toString()?.trim()
-            val db = input?.toFloatOrNull()
-            if (db == null || input.isNullOrEmpty()) {
-                Toast.makeText(requireContext(), "Please enter a valid dB value", Toast.LENGTH_SHORT).show()
-            } else {
-                binding.ampSlider.value = db.coerceIn(0f, 20f)
-                binding.ampLabel.text = "${db.toInt()} dB"
-                player?.setPreAmplification(db)
-                binding.customDbInputRow.visibility = View.GONE
-                binding.customDbChevron.rotation = 0f
-                val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE)
-                        as android.view.inputmethod.InputMethodManager
-                imm.hideSoftInputFromWindow(binding.customDbInput.windowToken, 0)
-            }
-        }
-
-        binding.customDbInfo.setOnClickListener {
-            com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Amplification Info")
-                .setMessage("Adjust playback volume amplification. Recommended max 20 dB.")
-                .setPositiveButton("Got it") { dialog, _ -> dialog.dismiss() }
-                .show()
-        }
     }
 
     private fun setupWaveformChart() {
@@ -160,7 +127,6 @@ class PlayerFragment : Fragment() {
             gridColor = Color.parseColor("#F0F0F0")
             gridLineWidth = 1f
 
-            // Narrowed limits to make the waveform look taller (Vertical Zoom)
             axisMinimum = -0.5f
             axisMaximum = 0.5f
 
@@ -202,7 +168,6 @@ class PlayerFragment : Fragment() {
                     )
 
                     val dataSet = LineDataSet(entries, "Waveform").apply {
-                        // Blue color and thicker line
                         color = Color.parseColor("#2D7DD2")
                         setDrawCircles(false)
                         setDrawValues(false)
@@ -212,12 +177,20 @@ class PlayerFragment : Fragment() {
                     binding.waveformChart.apply {
                         data = LineData(dataSet)
 
-                        // Reduced visible range to zoom in horizontally (4 seconds at a time)
                         setVisibleXRangeMaximum(4f)
 
-                        moveViewToX(0f) // Start at the beginning
+                        // FIX 1: Initial load centers the view at the start without jumping to the top
+                        centerViewTo(
+                            2f,
+                            0f,
+                            com.github.mikephil.charting.components.YAxis.AxisDependency.LEFT
+                        )
+
                         setTouchEnabled(true)
                         isDragEnabled = true
+
+                        // TIP: If you want to stop the user from messing up the vertical scale and only allow horizontal zooming,
+                        // change setScaleEnabled(true) to setScaleXEnabled(true) and setScaleYEnabled(false).
                         setScaleEnabled(true)
                         invalidate()
                     }
@@ -240,10 +213,20 @@ class PlayerFragment : Fragment() {
                                 "%02d:%02d", totalSecs / 60, totalSecs % 60
                             )
 
-                            // PAN THE GRAPH: Offset by 2 seconds so the current time stays in the CENTER
-                            // (Because setVisibleXRangeMaximum is 4f, 2f is exactly the middle)
-                            val centerOffset = timestamp.toFloat() - 2f
-                            binding.waveformChart.moveViewToX(if (centerOffset < 0f) 0f else centerOffset)
+                            // FIX 2: Dynamic centering that strictly anchors Y to 0f
+                            val chart = binding.waveformChart
+                            val currentVisibleRange = chart.visibleXRange
+                            val halfRange = currentVisibleRange / 2f
+
+                            // If we are at the very beginning, keep the left edge at 0
+                            val centerX =
+                                if (timestamp.toFloat() < halfRange) halfRange else timestamp.toFloat()
+
+                            chart.centerViewTo(
+                                centerX,
+                                0f,
+                                com.github.mikephil.charting.components.YAxis.AxisDependency.LEFT
+                            )
                         }
                     }
                 }
@@ -254,8 +237,13 @@ class PlayerFragment : Fragment() {
                             binding.actionText.text = getString(R.string.play_recording)
                             binding.playButton.setImageResource(R.drawable.ic_play_circle)
 
-                            // Snap graph back to the beginning when finished
-                            binding.waveformChart.moveViewToX(0f)
+                            // FIX 3: Snap graph back to the beginning gracefully
+                            val chart = binding.waveformChart
+                            chart.centerViewTo(
+                                chart.visibleXRange / 2f,
+                                0f,
+                                com.github.mikephil.charting.components.YAxis.AxisDependency.LEFT
+                            )
                         }
                     }
                 }
@@ -274,12 +262,22 @@ class PlayerFragment : Fragment() {
             binding.actionText.text = getString(R.string.play_recording)
             binding.playButton.setImageResource(R.drawable.ic_play_circle)
 
-            // Snap graph back to the beginning when manually stopped
-            binding.waveformChart.moveViewToX(0f)
+            // FIX 4: Snap graph back to the beginning gracefully when manually stopped
+            val chart = binding.waveformChart
+            chart.centerViewTo(
+                chart.visibleXRange / 2f,
+                0f,
+                com.github.mikephil.charting.components.YAxis.AxisDependency.LEFT
+            )
         } else {
             try {
-                // RESET GRAPH: Snap back to the beginning exactly when play is pressed
-                binding.waveformChart.moveViewToX(0f)
+                // RESET GRAPH: Snap back to the beginning gracefully when played
+                val chart = binding.waveformChart
+                chart.centerViewTo(
+                    chart.visibleXRange / 2f,
+                    0f,
+                    com.github.mikephil.charting.components.YAxis.AxisDependency.LEFT
+                )
 
                 player?.prepare()
                 player?.start()
@@ -316,7 +314,6 @@ class PlayerFragment : Fragment() {
                 }
 
                 PlayerSaveDiscardDialog.Action.DISCARD -> {
-                    // Delete the temp recording file and go back to the recording screen
                     try {
                         java.io.File(filePath).delete()
                     } catch (_: Exception) {

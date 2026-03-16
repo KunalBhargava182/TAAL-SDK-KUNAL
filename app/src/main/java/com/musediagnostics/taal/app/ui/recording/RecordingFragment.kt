@@ -109,15 +109,14 @@ class RecordingFragment : Fragment() {
         chart.setDrawGridBackground(true)
         chart.setGridBackgroundColor(Color.WHITE)
 
-        // Grid exactly like the video
         chart.xAxis.apply {
             position = XAxis.XAxisPosition.BOTTOM
             setDrawGridLines(true)
             gridColor = Color.parseColor("#F0F0F0")
             gridLineWidth = 1f
             granularity = 1f
-            axisMinimum = 0f
-            setLabelCount(10, false) // Ensure 10 vertical lines are drawn
+            // REMOVED axisMinimum and axisMaximum entirely here
+            setLabelCount(10, false)
             setDrawAxisLine(false)
             setDrawLabels(false)
         }
@@ -128,17 +127,18 @@ class RecordingFragment : Fragment() {
             gridLineWidth = 1f
             axisMinimum = -1f
             axisMaximum = 1f
-            setLabelCount(5, true) // Force exactly 5 horizontal lines
+            setLabelCount(5, true)
             setDrawLabels(false)
             setDrawAxisLine(false)
         }
 
         chart.axisRight.isEnabled = false
-        chart.setVisibleXRangeMaximum(10f)
 
-        // THE FIX: Seed with transparent dummy data from 0s to 10s.
-        // This forces the vertical grid lines to draw immediately!
-        val dummyDataSet = LineDataSet(listOf(Entry(0f, 0f), Entry(10f, 0f)), "").apply {
+        // Lock viewport size to exactly 10 seconds
+        chart.setVisibleXRangeMaximum(WINDOW_SECONDS)
+        chart.setVisibleXRangeMinimum(WINDOW_SECONDS)
+
+        val dummyDataSet = LineDataSet(listOf(Entry(0f, 0f), Entry(WINDOW_SECONDS, 0f)), "").apply {
             color = Color.TRANSPARENT
             setDrawCircles(false)
             setDrawValues(false)
@@ -157,46 +157,6 @@ class RecordingFragment : Fragment() {
             viewModel.setPreAmp(db)
             binding.ampLabel.text = "$db dB"
             taalRecorder?.setPreAmplification(db)
-        }
-
-        // Dropdown toggle
-        binding.customDbToggle.setOnClickListener {
-            val isVisible = binding.customDbInputRow.visibility == View.VISIBLE
-            binding.customDbInputRow.visibility = if (isVisible) View.GONE else View.VISIBLE
-            binding.customDbChevron.rotation = if (isVisible) 0f else 180f
-        }
-
-        // Apply button
-        binding.customDbApply.setOnClickListener {
-            val input = binding.customDbInput.text?.toString()?.trim()
-            val db = input?.toFloatOrNull()
-            if (db == null || input.isNullOrEmpty()) {
-                Toast.makeText(
-                    requireContext(), "Please enter a valid dB value", Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                val dbInt = db.toInt()
-                viewModel.setPreAmp(dbInt)
-                // Clamp slider to its 0–20 visual range but apply any value to the recorder
-                binding.ampSlider.value = dbInt.toFloat().coerceIn(0f, 20f)
-                binding.ampLabel.text = "$dbInt dB"
-                taalRecorder?.setPreAmplification(dbInt)
-                // Collapse the panel after applying
-                binding.customDbInputRow.visibility = View.GONE
-                binding.customDbChevron.rotation = 0f
-                // Hide keyboard
-                val imm =
-                    requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
-                imm.hideSoftInputFromWindow(binding.customDbInput.windowToken, 0)
-            }
-        }
-
-        // Info button
-        binding.customDbInfo.setOnClickListener {
-            com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Amplification Info")
-                .setMessage("Recommended dB is max 20 dB for best audio experience.")
-                .setPositiveButton("Got it") { dialog, _ -> dialog.dismiss() }.show()
         }
     }
 
@@ -350,7 +310,6 @@ class RecordingFragment : Fragment() {
                     binding.timerText.text = getString(R.string.timer_default)
                     // Unlock amp controls
                     binding.ampSlider.isEnabled = true
-                    binding.customDbToggle.isEnabled = true
                     binding.ampSliderContainer.alpha = 1f
                 }
 
@@ -362,11 +321,8 @@ class RecordingFragment : Fragment() {
                     binding.preRecordingButtons.visibility = View.GONE
                     binding.recordingButtons.visibility = View.GONE
                     binding.recordButton.setImageResource(R.drawable.ic_recording_stop)
-                    // Lock amp controls — collapse custom panel and disable interaction
-                    binding.customDbInputRow.visibility = View.GONE
-                    binding.customDbChevron.rotation = 0f
+                    // Lock amp controls
                     binding.ampSlider.isEnabled = false
-                    binding.customDbToggle.isEnabled = false
                     binding.ampSliderContainer.alpha = 0.55f
                 }
 
@@ -545,6 +501,7 @@ class RecordingFragment : Fragment() {
                 putBoolean("isNewRecording", true)
                 putString("filterName", viewModel.currentFilter.value ?: "HEART")
             }
+
             findNavController().navigate(R.id.action_recording_to_player, bundle)
         }
         // viewModel.setUiState(RecordingUiState.STOPPED) // replaced by direct navigation
@@ -567,46 +524,50 @@ class RecordingFragment : Fragment() {
         if (_binding == null || !isAdded) return
         val chart = binding.waveformChart
 
-        // Absolute peak of this buffer for Y-axis scaling
         var bufferPeak = 0f
         for (sample in data) {
             val abs = Math.abs(sample)
             if (abs > bufferPeak) bufferPeak = abs
         }
 
-        // Add entries with sample-accurate X positions (no timestamp jitter)
+        // CONTINUOUS X LOGIC: X grows infinitely.
         val step = DOWNSAMPLE_STEP
         for (i in 0 until data.size step step) {
-            val x = totalSamplesProcessed.toFloat() / INPUT_SAMPLE_RATE
-            waveformEntries.add(Entry(x, data[i]))
+            val currentX = totalSamplesProcessed.toFloat() / INPUT_SAMPLE_RATE
+            waveformEntries.add(Entry(currentX, data[i]))
             totalSamplesProcessed += step
         }
-        val currentX = totalSamplesProcessed.toFloat() / INPUT_SAMPLE_RATE
 
-        // Trim entries older than 20s behind current position (keeps ~2x the visible window)
-        if (currentX > 30f) {
-            val cutoff = currentX - 20f
-            val trimIndex = waveformEntries.indexOfFirst { it.x >= cutoff }
-            if (trimIndex > 0) waveformEntries.subList(0, trimIndex).clear()
+        val latestX = totalSamplesProcessed.toFloat() / INPUT_SAMPLE_RATE
+
+        // PAGE CALCULATION: Determine which 10-second block we are currently in
+        val currentPage = (latestX / WINDOW_SECONDS).toInt()
+        val currentViewX = currentPage * WINDOW_SECONDS
+
+        // MEMORY CLEANUP: Keep data for the current page and the immediate previous page.
+        val minXToKeep = (currentPage - 1) * WINDOW_SECONDS
+        if (minXToKeep > 0) {
+            val iterator = waveformEntries.iterator()
+            while (iterator.hasNext()) {
+                if (iterator.next().x < minXToKeep) {
+                    iterator.remove()
+                } else {
+                    break // Stop iterating once we reach visible data
+                }
+            }
         }
 
         val now = System.currentTimeMillis()
-
         if (!warmupDone) {
-            // Phase 1: accumulate peak; Y-axis stays at ±1.0 (set in setupWaveformChart)
             if (bufferPeak > warmupPeak) warmupPeak = bufferPeak
             if (lastPeakUpdateTime == 0L) lastPeakUpdateTime = now
-
             if (now - lastPeakUpdateTime >= WARMUP_MS) {
                 warmupDone = true
                 peakAmplitude = (warmupPeak * HEADROOM).coerceIn(MIN_PEAK, 1.0f)
-                // Write Y-axis once at warmup completion
                 chart.axisLeft.axisMinimum = -peakAmplitude
                 chart.axisLeft.axisMaximum = peakAmplitude
             }
         } else {
-            // Phase 2: only expand Y-axis when signal exceeds current scale.
-            // No downward drift — constant updates cause grid flicker.
             val needed = bufferPeak * HEADROOM
             if (needed > peakAmplitude) {
                 peakAmplitude = needed.coerceAtMost(1.0f)
@@ -615,9 +576,9 @@ class RecordingFragment : Fragment() {
             }
         }
 
-        // Reuse persistent dataset — never replace chart.data to avoid blank frames
-        val snapshot = ArrayList(waveformEntries.toList())
+        val snapshot = ArrayList(waveformEntries)
         val ds = waveformDataSet
+
         if (ds == null || chart.data == null) {
             waveformDataSet = LineDataSet(snapshot, "Waveform").apply {
                 color = ContextCompat.getColor(requireContext(), R.color.waveform_blue)
@@ -632,16 +593,20 @@ class RecordingFragment : Fragment() {
             ds.values = snapshot
             chart.data?.notifyDataChanged()
         }
+
+        // Notify the chart that the underlying data arrays have changed
         chart.notifyDataSetChanged()
 
-        // Pan the viewport to follow the waveform (smooth scroll, no axis mutation)
-        if (currentX > WINDOW_SECONDS) {
-            chart.moveViewToX(currentX - WINDOW_SECONDS)
-        } else {
-            chart.moveViewToX(0f)
-        }
-    }
+        // Re-enforce the strict 10-second view width
+        chart.setVisibleXRangeMaximum(WINDOW_SECONDS)
+        chart.setVisibleXRangeMinimum(WINDOW_SECONDS)
 
+        // PUSH CAMERA: Snap the view to the start of the current 10-second page
+        chart.moveViewToX(currentViewX)
+
+        // CRITICAL FIX: Force the chart to physically redraw the new pixels on the screen!
+        chart.invalidate()
+    }
     // private fun showSaveDialog() {
     //     val dialog = SaveAlertDialog { saveType ->
     //         when (saveType) {
@@ -687,9 +652,6 @@ class RecordingFragment : Fragment() {
         viewModel.setPreAmp(5)
         binding.ampSlider.value = 5f
         binding.ampLabel.text = "5 dB"
-        binding.customDbInputRow.visibility = View.GONE
-        binding.customDbChevron.rotation = 0f
-        binding.customDbInput.text?.clear()
         // Recorder is null but state is RECORDING → we stopped and navigated to PlayerFragment,
         // then the user pressed Discard and popped back here. Reset to idle.
 //        if (taalRecorder == null && viewModel.uiState.value == RecordingUiState.RECORDING) {
