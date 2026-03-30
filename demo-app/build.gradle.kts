@@ -38,8 +38,8 @@ android {
 }
 
 dependencies {
-    // TAAL SDK
-    implementation(project(":taal-sdk"))
+    // TAAL Core SDK
+    implementation(project(":taal-core"))
 
     // Core Android
     implementation("androidx.core:core-ktx:1.12.0")

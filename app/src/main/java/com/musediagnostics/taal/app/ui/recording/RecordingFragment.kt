@@ -28,7 +28,12 @@ import com.musediagnostics.taal.app.databinding.FragmentRecordingBinding
 import com.musediagnostics.taal.app.dsp.HeartBpmCalculator
 import com.musediagnostics.taal.app.ui.MainActivity
 import com.musediagnostics.taal.utils.TaalConnectionBroadcastReceiver
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class RecordingFragment : Fragment() {
 
@@ -47,7 +52,7 @@ class RecordingFragment : Fragment() {
     private var waveformDataSet: LineDataSet? = null
     private var peakAmplitude = 1.0f       // Y-axis half-range; set from warmup then locked
     private var lastPeakUpdateTime = 0L
-    private var warmupPeak = 0f           // Accumulates absolute-peak over the warmup window
+    private var warmupPeak = 0f           // Accumulatesf absolute-peak over the warmup window
     private var warmupDone = false        // Latches true after WARMUP_MS of signal observed
     private var recordingStartTime = 0L
     private var chartInitialized = false
@@ -63,7 +68,7 @@ class RecordingFragment : Fragment() {
         private const val DOWNSAMPLE_STEP = 44
 
         // WARMUP: measure the signal's true peak over the first 1500ms, then lock in the Y-axis.
-        private const val WARMUP_MS = 1500L
+        private const val WARMUP_MS = 2000
 
         // After warmup, Y-axis = peakAmplitude × HEADROOM so waveform fills ~65% of height.
         private const val HEADROOM = 1.5f
@@ -252,11 +257,14 @@ class RecordingFragment : Fragment() {
         // }
 
         binding.playPauseButton.setOnClickListener {
-            // Navigate to player with current recording
-            if (viewModel.currentRecordingPath.isNotEmpty()) {
+            val filteredPath = viewModel.currentFilteredPath
+            val rawPath = viewModel.currentRecordingPath
+            val filterName = viewModel.currentFilter.value ?: "HEART"
+            if (filteredPath.isNotEmpty()) {
                 val bundle = Bundle().apply {
-                    putString("filePath", viewModel.currentRecordingPath)
-                    putString("filterName", viewModel.currentFilter.value ?: "HEART")
+                    putString("filePath", filteredPath)
+                    putString("rawFilePath", rawPath)
+                    putString("filterName", filterName)
                 }
                 findNavController().navigate(R.id.action_recording_to_player, bundle)
             }
@@ -275,6 +283,7 @@ class RecordingFragment : Fragment() {
     private fun resetToIdle() {
         viewModel.setUiState(RecordingUiState.IDLE)
         viewModel.currentRecordingPath = ""
+        viewModel.currentFilteredPath = ""
         waveformEntries.clear()
         waveformDataSet = null
         chartInitialized = false
@@ -366,15 +375,18 @@ class RecordingFragment : Fragment() {
 
     private fun startRecording() {
         try {
-            val filePath =
-                "${requireContext().filesDir}/recording_${System.currentTimeMillis()}.wav"
-            viewModel.currentRecordingPath = filePath
+            val ts = System.currentTimeMillis()
+            val rawFilePath = "${requireContext().filesDir}/recording_${ts}_raw.wav"
+            val filteredFilePath = "${requireContext().filesDir}/recording_${ts}_filtered.wav"
+            viewModel.currentRecordingPath = rawFilePath
+            viewModel.currentFilteredPath = filteredFilePath
 
             val filterName = viewModel.currentFilter.value ?: "HEART"
             val preFilter = PreFilter.valueOf(filterName)
 
             taalRecorder = TaalRecorder(requireContext()).apply {
-                setRawAudioFilePath(filePath)
+                setRawAudioFilePath(rawFilePath)
+                setFilteredAudioFilePath(filteredFilePath)
                 setRecordingTime(300) // 5 minutes max
                 setPlayback(false)
                 setPreAmplification(viewModel.preAmpDb.value ?: 5)
@@ -423,9 +435,19 @@ class RecordingFragment : Fragment() {
                             }
                         }
 
+                        // Undo pre-amp gain before drawing the waveform so the graph always
+                        // reflects the acoustic signal level, not the amplified version.
+                        val preAmpDb = viewModel.preAmpDb.value ?: 5
+                        val preAmpGain = Math.pow(10.0, preAmpDb / 20.0).toFloat()
+                        val displayData = if (preAmpGain > 1.001f) {
+                            FloatArray(data.size) { i -> data[i] / preAmpGain }
+                        } else {
+                            data
+                        }
+
                         activity?.runOnUiThread {
                             if (isAdded && _binding != null) {
-                                updateWaveform(timeStamp, data)
+                                updateWaveform(timeStamp, displayData)
                                 val elapsed = timeStamp.toInt()
                                 viewModel.updateTimer(elapsed)
                             }
@@ -493,18 +515,20 @@ class RecordingFragment : Fragment() {
         } catch (_: Exception) {
         }
         taalRecorder = null
-        // Navigate directly to player instead of showing Save/Discard dialog
-        val path = viewModel.currentRecordingPath
-        if (path.isNotEmpty()) {
-            val bundle = Bundle().apply {
-                putString("filePath", path)
-                putBoolean("isNewRecording", true)
-                putString("filterName", viewModel.currentFilter.value ?: "HEART")
-            }
 
+        val filteredPath = viewModel.currentFilteredPath
+        val rawPath = viewModel.currentRecordingPath
+        val filterName = viewModel.currentFilter.value ?: "HEART"
+
+        if (filteredPath.isNotEmpty()) {
+            val bundle = Bundle().apply {
+                putString("filePath", filteredPath)
+                putString("rawFilePath", rawPath)
+                putBoolean("isNewRecording", true)
+                putString("filterName", filterName)
+            }
             findNavController().navigate(R.id.action_recording_to_player, bundle)
         }
-        // viewModel.setUiState(RecordingUiState.STOPPED) // replaced by direct navigation
     }
 
     /**
@@ -561,20 +585,16 @@ class RecordingFragment : Fragment() {
         if (!warmupDone) {
             if (bufferPeak > warmupPeak) warmupPeak = bufferPeak
             if (lastPeakUpdateTime == 0L) lastPeakUpdateTime = now
+
+            // Once the warmup duration has passed, lock the Y-axis scale
             if (now - lastPeakUpdateTime >= WARMUP_MS) {
                 warmupDone = true
                 peakAmplitude = (warmupPeak * HEADROOM).coerceIn(MIN_PEAK, 1.0f)
                 chart.axisLeft.axisMinimum = -peakAmplitude
                 chart.axisLeft.axisMaximum = peakAmplitude
             }
-        } else {
-            val needed = bufferPeak * HEADROOM
-            if (needed > peakAmplitude) {
-                peakAmplitude = needed.coerceAtMost(1.0f)
-                chart.axisLeft.axisMinimum = -peakAmplitude
-                chart.axisLeft.axisMaximum = peakAmplitude
-            }
         }
+// The 'else' block that previously expanded the axis has been removed.
 
         val snapshot = ArrayList(waveformEntries)
         val ds = waveformDataSet

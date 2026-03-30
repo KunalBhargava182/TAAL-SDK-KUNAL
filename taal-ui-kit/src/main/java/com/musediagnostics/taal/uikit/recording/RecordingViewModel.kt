@@ -22,6 +22,7 @@ class RecordingViewModel : ViewModel() {
     val preAmpDb: LiveData<Int> = _preAmpDb
 
     var currentRecordingPath: String = ""
+    var currentFilteredPath: String = ""
 
     fun setUiState(state: RecordingUiState) {
         _uiState.value = state
@@ -40,13 +41,14 @@ class RecordingViewModel : ViewModel() {
     }
 
     fun setPreAmp(db: Int) {
-        _preAmpDb.value = db.coerceIn(0, 20)
+        _preAmpDb.value = db.coerceIn(0, 30)
     }
 
     fun formatTimer(seconds: Int): String {
-        val hours = seconds / 3600
-        val minutes = (seconds % 3600) / 60
-        val secs = seconds % 60
+        val clamped = seconds.coerceAtLeast(0)
+        val hours = clamped / 3600
+        val minutes = (clamped % 3600) / 60
+        val secs = clamped % 60
         return String.format("%02d:%02d:%02d", hours, minutes, secs)
     }
 }

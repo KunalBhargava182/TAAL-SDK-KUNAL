@@ -11,7 +11,8 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/demo-app" />
-            <option value="$PROJECT_DIR$/taal-sdk" />
+            <option value="$PROJECT_DIR$/taal-core" />
+            <option value="$PROJECT_DIR$/taal-ui-kit" />
           </set>
         </option>
       </GradleProjectSettings>

@@ -37,7 +37,8 @@ class SavedRecordingsFragment : Fragment() {
 
     private fun loadRecordings() {
         val savedDir = File(requireContext().filesDir, "saved")
-        val files = savedDir.listFiles { f -> f.extension == "wav" }
+        // Only show _filtered.wav files — each recording's canonical playback version
+        val files = savedDir.listFiles { f -> f.extension == "wav" && f.name.contains("_filtered") }
             ?.sortedByDescending { it.lastModified() }
             ?: emptyList()
 
@@ -51,6 +52,7 @@ class SavedRecordingsFragment : Fragment() {
                 val bundle = Bundle().apply {
                     putString("filePath", file.absolutePath)
                     putBoolean("isNewRecording", false)
+                    putString("filterName", "HEART") // _filtered files skip filter anyway
                 }
                 findNavController().navigate(R.id.action_savedRecordings_to_player, bundle)
             }

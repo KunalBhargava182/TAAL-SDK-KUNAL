@@ -19,7 +19,7 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "TAAL SDK"
-include(":taal-sdk")
+include(":taal-core")
 include(":taal-ui-kit")
 include(":demo-app")
 include(":app")

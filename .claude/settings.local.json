@@ -116,7 +116,17 @@
       "Bash(# Copy color file\ncp \"E:/AndroidProjects/TaalDemoApp/app/src/main/res/color/filter_icon_selector.xml\" \\\\\n   \"E:/AndroidProjects/TaalDemoApp/taal-ui-kit/src/main/res/color/filter_icon_selector.xml\" && echo \"Copied color\"\n\n# Copy menu file\nmkdir -p \"E:/AndroidProjects/TaalDemoApp/taal-ui-kit/src/main/res/menu\"\ncp \"E:/AndroidProjects/TaalDemoApp/app/src/main/res/menu/menu_eq_presets.xml\" \\\\\n   \"E:/AndroidProjects/TaalDemoApp/taal-ui-kit/src/main/res/menu/menu_eq_presets.xml\" && echo \"Copied menu\"\n\necho \"Done\")",
       "Bash(wait i dont want you to update the sdk now, once the testing in the code is done then we will update the sdk)",
       "Read(//e/AndroidProjects/TaalDemoApp/**)",
-      "Bash(java -version)"
+      "Bash(java -version)",
+      "Bash(cat E:/AndroidProjects/TaalDemoApp/settings.gradle*)",
+      "Bash(do echo:*)",
+      "Bash(mkdir -p \"E:/AndroidProjects/TaalDemoApp/taal-core/src/main/java/com/musediagnostics/taal/core\")",
+      "Bash(mkdir -p \"E:/AndroidProjects/TaalDemoApp/taal-core/src/main/java/com/musediagnostics/taal/dsp\")",
+      "Bash(mkdir -p \"E:/AndroidProjects/TaalDemoApp/taal-core/src/main/java/com/musediagnostics/taal/utils\")",
+      "Bash(cp taal-sdk/src/main/java/com/musediagnostics/taal/TaalRecorder.kt taal-core/src/main/java/com/musediagnostics/taal/)",
+      "Bash(cp taal-sdk/src/main/java/com/musediagnostics/taal/TaalPlayer.kt taal-core/src/main/java/com/musediagnostics/taal/)",
+      "Bash(cp taal-sdk/src/main/java/com/musediagnostics/taal/core/TaalAudioCapture.kt taal-core/src/main/java/com/musediagnostics/taal/core/)",
+      "Bash(cp taal-sdk/src/main/java/com/musediagnostics/taal/dsp/AudioFilterEngine.kt taal-core/src/main/java/com/musediagnostics/taal/dsp/)",
+      "Bash(cp taal-sdk/src/main/java/com/musediagnostics/taal/utils/SurrUtils.kt taal-core/src/main/java/com/musediagnostics/taal/utils/)"
     ]
   }
 }

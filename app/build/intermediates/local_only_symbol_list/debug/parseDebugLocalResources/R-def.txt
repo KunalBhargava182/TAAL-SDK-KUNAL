@@ -481,6 +481,7 @@ id userManualFragment
 id verifyButton
 id versionText
 id waveformChart
+id waveformLoadingIndicator
 id waveformPreview
 id weightDropdown
 id weightText

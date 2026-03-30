@@ -3471,11 +3471,6 @@ id changePinFragment
 id checkCircleIcon
 id checkbox
 id checked
-id chip_bowel
-id chip_full_body
-id chip_heart
-id chip_lungs
-id chip_pregnancy
 id chronometer
 id circle_center
 id clear_text
@@ -3590,17 +3585,6 @@ id enterAlways
 id enterAlwaysCollapsed
 id eqButton
 id eqCurveArea
-id eq_100hz_label
-id eq_100hz_slider
-id eq_200hz_label
-id eq_200hz_slider
-id eq_20hz_label
-id eq_20hz_slider
-id eq_50hz_label
-id eq_50hz_slider
-id eq_600hz_label
-id eq_600hz_slider
-id eq_title
 id equalizerFragment
 id exitUntilCollapsed
 id expandIcon
@@ -3639,7 +3623,6 @@ id filterLungs
 id filterPregnancy
 id filterPregnancyChip
 id filterRow
-id filter_chip_group
 id fingerprintBottomIcon
 id fingerprintConfirmFragment
 id fingerprintLargeIcon
@@ -3899,14 +3882,10 @@ id planNameText
 id playButton
 id playPauseButton
 id playText
-id play_button
 id playerFragment
 id position
 id postLayout
 id preRecordingButtons
-id pre_amp_label
-id pre_amp_seekbar
-id pre_amp_value
 id preset_custom_1
 id preset_custom_2
 id preset_custom_3
@@ -3926,7 +3905,6 @@ id questionText
 id radio
 id ratio
 id recordButton
-id record_button
 id recordingButtons
 id recordingCount
 id recordingDate
@@ -4093,7 +4071,6 @@ id textinput_prefix_text
 id textinput_suffix_text
 id time
 id timerText
-id timer_text
 id title
 id titleDividerNoCustom
 id titleText
@@ -4132,8 +4109,8 @@ id view_tree_view_model_store_owner
 id visible
 id visible_removing_fragment_view_tag
 id waveformChart
+id waveformLoadingIndicator
 id waveformPreview
-id waveform_chart
 id weightDropdown
 id weightText
 id west
@@ -4261,8 +4238,6 @@ layout abc_search_view
 layout abc_select_dialog_material
 layout abc_tooltip
 layout activity_main
-layout activity_player
-layout activity_recorder
 layout custom_dialog
 layout design_bottom_navigation_item
 layout design_bottom_sheet_dialog

@@ -28,7 +28,12 @@ import com.musediagnostics.taal.uikit.TaalRecorderActivity
 import com.musediagnostics.taal.uikit.databinding.FragmentRecordingBinding
 import com.musediagnostics.taal.uikit.dsp.HeartBpmCalculator
 import com.musediagnostics.taal.utils.TaalConnectionBroadcastReceiver
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class RecordingFragment : Fragment() {
 
@@ -57,7 +62,7 @@ class RecordingFragment : Fragment() {
         private const val WINDOW_SECONDS = 10f
         private const val INPUT_SAMPLE_RATE = 44100f
         private const val DOWNSAMPLE_STEP = 44
-        private const val WARMUP_MS = 1500L
+        private const val WARMUP_MS = 2000L
         private const val HEADROOM = 1.5f
         private const val MIN_PEAK = 0.02f
     }
@@ -131,9 +136,10 @@ class RecordingFragment : Fragment() {
         }
 
         chart.axisRight.isEnabled = false
-        chart.setVisibleXRangeMaximum(10f)
+        chart.setVisibleXRangeMaximum(WINDOW_SECONDS)
+        chart.setVisibleXRangeMinimum(WINDOW_SECONDS)
 
-        val dummyDataSet = LineDataSet(listOf(Entry(0f, 0f), Entry(10f, 0f)), "").apply {
+        val dummyDataSet = LineDataSet(listOf(Entry(0f, 0f), Entry(WINDOW_SECONDS, 0f)), "").apply {
             color = Color.TRANSPARENT
             setDrawCircles(false)
             setDrawValues(false)
@@ -151,39 +157,6 @@ class RecordingFragment : Fragment() {
             viewModel.setPreAmp(db)
             binding.ampLabel.text = "$db dB"
             taalRecorder?.setPreAmplification(db)
-        }
-
-        binding.customDbToggle.setOnClickListener {
-            val isVisible = binding.customDbInputRow.visibility == View.VISIBLE
-            binding.customDbInputRow.visibility = if (isVisible) View.GONE else View.VISIBLE
-            binding.customDbChevron.rotation = if (isVisible) 0f else 180f
-        }
-
-        binding.customDbApply.setOnClickListener {
-            val input = binding.customDbInput.text?.toString()?.trim()
-            val db = input?.toFloatOrNull()
-            if (db == null || input.isNullOrEmpty()) {
-                Toast.makeText(requireContext(), "Please enter a valid dB value", Toast.LENGTH_SHORT).show()
-            } else {
-                val dbInt = db.toInt()
-                viewModel.setPreAmp(dbInt)
-                binding.ampSlider.value = dbInt.toFloat().coerceIn(0f, 20f)
-                binding.ampLabel.text = "$dbInt dB"
-                taalRecorder?.setPreAmplification(dbInt)
-                binding.customDbInputRow.visibility = View.GONE
-                binding.customDbChevron.rotation = 0f
-                val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE)
-                        as android.view.inputmethod.InputMethodManager
-                imm.hideSoftInputFromWindow(binding.customDbInput.windowToken, 0)
-            }
-        }
-
-        binding.customDbInfo.setOnClickListener {
-            com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Amplification Info")
-                .setMessage("Recommended dB is max 20 dB for best audio experience.")
-                .setPositiveButton("Got it") { dialog, _ -> dialog.dismiss() }
-                .show()
         }
     }
 
@@ -262,11 +235,15 @@ class RecordingFragment : Fragment() {
         }
 
         binding.playPauseButton.setOnClickListener {
-            if (viewModel.currentRecordingPath.isNotEmpty()) {
+            val filteredPath = viewModel.currentFilteredPath
+            val rawPath = viewModel.currentRecordingPath
+            val filterName = viewModel.currentFilter.value ?: "HEART"
+            if (filteredPath.isNotEmpty()) {
                 val bundle = Bundle().apply {
-                    putString("filePath", viewModel.currentRecordingPath)
+                    putString("filePath", filteredPath)
+                    putString("rawFilePath", rawPath)
                     putBoolean("isNewRecording", false)
-                    putString("filterName", viewModel.currentFilter.value ?: "HEART")
+                    putString("filterName", filterName)
                 }
                 findNavController().navigate(R.id.action_recording_to_player, bundle)
             }
@@ -276,6 +253,7 @@ class RecordingFragment : Fragment() {
     private fun resetToIdle() {
         viewModel.setUiState(RecordingUiState.IDLE)
         viewModel.currentRecordingPath = ""
+        viewModel.currentFilteredPath = ""
         waveformEntries.clear()
         waveformDataSet = null
         chartInitialized = false
@@ -309,7 +287,6 @@ class RecordingFragment : Fragment() {
                     binding.recordButton.setImageResource(R.drawable.ic_recording_start1)
                     binding.timerText.text = getString(R.string.timer_default)
                     binding.ampSlider.isEnabled = true
-                    binding.customDbToggle.isEnabled = true
                     binding.ampSliderContainer.alpha = 1f
                 }
 
@@ -320,10 +297,7 @@ class RecordingFragment : Fragment() {
                     binding.preRecordingButtons.visibility = View.GONE
                     binding.recordingButtons.visibility = View.GONE
                     binding.recordButton.setImageResource(R.drawable.ic_recording_stop)
-                    binding.customDbInputRow.visibility = View.GONE
-                    binding.customDbChevron.rotation = 0f
                     binding.ampSlider.isEnabled = false
-                    binding.customDbToggle.isEnabled = false
                     binding.ampSliderContainer.alpha = 0.55f
                 }
 
@@ -353,15 +327,18 @@ class RecordingFragment : Fragment() {
 
     private fun startRecording() {
         try {
-            val filePath =
-                "${requireContext().filesDir}/recording_${System.currentTimeMillis()}.wav"
-            viewModel.currentRecordingPath = filePath
+            val ts = System.currentTimeMillis()
+            val rawFilePath = "${requireContext().filesDir}/recording_${ts}_raw.wav"
+            val filteredFilePath = "${requireContext().filesDir}/recording_${ts}_filtered.wav"
+            viewModel.currentRecordingPath = rawFilePath
+            viewModel.currentFilteredPath = filteredFilePath
 
             val filterName = viewModel.currentFilter.value ?: "HEART"
             val preFilter = PreFilter.valueOf(filterName)
 
             taalRecorder = TaalRecorder(requireContext()).apply {
-                setRawAudioFilePath(filePath)
+                setRawAudioFilePath(rawFilePath)
+                setFilteredAudioFilePath(filteredFilePath)
                 setRecordingTime(300)
                 setPlayback(false)
                 setPreAmplification(viewModel.preAmpDb.value ?: 5)
@@ -402,9 +379,19 @@ class RecordingFragment : Fragment() {
                             }
                         }
 
+                        // Undo pre-amp gain before drawing the waveform so the graph always
+                        // reflects the acoustic signal level, not the amplified version.
+                        val preAmpDb = viewModel.preAmpDb.value ?: 5
+                        val preAmpGain = Math.pow(10.0, preAmpDb / 20.0).toFloat()
+                        val displayData = if (preAmpGain > 1.001f) {
+                            FloatArray(data.size) { i -> data[i] / preAmpGain }
+                        } else {
+                            data
+                        }
+
                         activity?.runOnUiThread {
                             if (isAdded && _binding != null) {
-                                updateWaveform(timeStamp, data)
+                                updateWaveform(timeStamp, displayData)
                                 val elapsed = timeStamp.toInt()
                                 viewModel.updateTimer(elapsed)
                             }
@@ -461,12 +448,16 @@ class RecordingFragment : Fragment() {
         try { taalRecorder?.stop() } catch (_: Exception) {}
         taalRecorder = null
 
-        val path = viewModel.currentRecordingPath
-        if (path.isNotEmpty()) {
+        val filteredPath = viewModel.currentFilteredPath
+        val rawPath = viewModel.currentRecordingPath
+        val filterName = viewModel.currentFilter.value ?: "HEART"
+
+        if (filteredPath.isNotEmpty()) {
             val bundle = Bundle().apply {
-                putString("filePath", path)
+                putString("filePath", filteredPath)
+                putString("rawFilePath", rawPath)
                 putBoolean("isNewRecording", true)
-                putString("filterName", viewModel.currentFilter.value ?: "HEART")
+                putString("filterName", filterName)
             }
             findNavController().navigate(R.id.action_recording_to_player, bundle)
         }
@@ -484,16 +475,25 @@ class RecordingFragment : Fragment() {
 
         val step = DOWNSAMPLE_STEP
         for (i in 0 until data.size step step) {
-            val x = totalSamplesProcessed.toFloat() / INPUT_SAMPLE_RATE
-            waveformEntries.add(Entry(x, data[i]))
+            val currentX = totalSamplesProcessed.toFloat() / INPUT_SAMPLE_RATE
+            waveformEntries.add(Entry(currentX, data[i]))
             totalSamplesProcessed += step
         }
-        val currentX = totalSamplesProcessed.toFloat() / INPUT_SAMPLE_RATE
 
-        if (currentX > 30f) {
-            val cutoff = currentX - 20f
-            val trimIndex = waveformEntries.indexOfFirst { it.x >= cutoff }
-            if (trimIndex > 0) waveformEntries.subList(0, trimIndex).clear()
+        val latestX = totalSamplesProcessed.toFloat() / INPUT_SAMPLE_RATE
+
+        // Page-based memory cleanup: keep current page and previous page only
+        val currentPage = (latestX / WINDOW_SECONDS).toInt()
+        val minXToKeep = (currentPage - 1) * WINDOW_SECONDS
+        if (minXToKeep > 0) {
+            val iterator = waveformEntries.iterator()
+            while (iterator.hasNext()) {
+                if (iterator.next().x < minXToKeep) {
+                    iterator.remove()
+                } else {
+                    break
+                }
+            }
         }
 
         val now = System.currentTimeMillis()
@@ -502,16 +502,10 @@ class RecordingFragment : Fragment() {
             if (bufferPeak > warmupPeak) warmupPeak = bufferPeak
             if (lastPeakUpdateTime == 0L) lastPeakUpdateTime = now
 
+            // Once warmup duration has passed, lock the Y-axis scale permanently
             if (now - lastPeakUpdateTime >= WARMUP_MS) {
                 warmupDone = true
                 peakAmplitude = (warmupPeak * HEADROOM).coerceIn(MIN_PEAK, 1.0f)
-                chart.axisLeft.axisMinimum = -peakAmplitude
-                chart.axisLeft.axisMaximum = peakAmplitude
-            }
-        } else {
-            val needed = bufferPeak * HEADROOM
-            if (needed > peakAmplitude) {
-                peakAmplitude = needed.coerceAtMost(1.0f)
                 chart.axisLeft.axisMinimum = -peakAmplitude
                 chart.axisLeft.axisMaximum = peakAmplitude
             }
@@ -535,11 +529,14 @@ class RecordingFragment : Fragment() {
         }
         chart.notifyDataSetChanged()
 
-        if (currentX > WINDOW_SECONDS) {
-            chart.moveViewToX(currentX - WINDOW_SECONDS)
-        } else {
-            chart.moveViewToX(0f)
-        }
+        // Re-enforce the strict 10-second view width
+        chart.setVisibleXRangeMaximum(WINDOW_SECONDS)
+        chart.setVisibleXRangeMinimum(WINDOW_SECONDS)
+
+        // Snap the view to the start of the current 10-second page
+        chart.moveViewToX(currentPage * WINDOW_SECONDS)
+
+        chart.invalidate()
     }
 
     override fun onResume() {
@@ -552,9 +549,6 @@ class RecordingFragment : Fragment() {
         viewModel.setPreAmp(5)
         binding.ampSlider.value = 5f
         binding.ampLabel.text = "5 dB"
-        binding.customDbInputRow.visibility = View.GONE
-        binding.customDbChevron.rotation = 0f
-        binding.customDbInput.text?.clear()
     }
 
     override fun onDestroyView() {

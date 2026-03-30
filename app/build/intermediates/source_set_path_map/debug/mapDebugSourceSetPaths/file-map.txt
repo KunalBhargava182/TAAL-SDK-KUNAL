@@ -54,4 +54,4 @@ com.musediagnostics.taal.app-packageDebugResources-52 E:\AndroidProjects\TaalDem
 com.musediagnostics.taal.app-debug-53 E:\AndroidProjects\TaalDemoApp\app\build\intermediates\merged_res\debug\mergeDebugResources
 com.musediagnostics.taal.app-debug-54 E:\AndroidProjects\TaalDemoApp\app\src\debug\res
 com.musediagnostics.taal.app-main-55 E:\AndroidProjects\TaalDemoApp\app\src\main\res
-com.musediagnostics.taal.app-debug-56 E:\AndroidProjects\TaalDemoApp\taal-sdk\build\intermediates\packaged_res\debug\packageDebugResources
+com.musediagnostics.taal.app-debug-56 E:\AndroidProjects\TaalDemoApp\taal-core\build\intermediates\packaged_res\debug\packageDebugResources

@@ -14,6 +14,7 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.musediagnostics.taal.InvalidFileNameException
+import com.musediagnostics.taal.PreFilter
 import com.musediagnostics.taal.TaalPlayer
 import com.musediagnostics.taal.uikit.R
 import com.musediagnostics.taal.uikit.TaalRecorderActivity
@@ -71,12 +72,14 @@ class PlayerFragment : Fragment() {
             togglePlayback(filePath)
         }
 
+        val rawFilePath = arguments?.getString("rawFilePath") ?: ""
+
         binding.saveButton.setOnClickListener {
-            showTaalSaveDialog(filePath, filterName)
+            showTaalSaveDialog(filePath, rawFilePath, filterName)
         }
 
         binding.discardButton.setOnClickListener {
-            confirmDiscard(filePath)
+            confirmDiscard(filePath, rawFilePath)
         }
     }
 
@@ -85,37 +88,6 @@ class PlayerFragment : Fragment() {
             val db = value.toInt()
             binding.ampLabel.text = "$db dB"
             player?.setPreAmplification(db.toFloat())
-        }
-
-        binding.customDbToggle.setOnClickListener {
-            val isVisible = binding.customDbInputRow.visibility == View.VISIBLE
-            binding.customDbInputRow.visibility = if (isVisible) View.GONE else View.VISIBLE
-            binding.customDbChevron.rotation = if (isVisible) 0f else 180f
-        }
-
-        binding.customDbApply.setOnClickListener {
-            val input = binding.customDbInput.text?.toString()?.trim()
-            val db = input?.toFloatOrNull()
-            if (db == null || input.isNullOrEmpty()) {
-                Toast.makeText(requireContext(), "Please enter a valid dB value", Toast.LENGTH_SHORT).show()
-            } else {
-                binding.ampSlider.value = db.coerceIn(0f, 20f)
-                binding.ampLabel.text = "${db.toInt()} dB"
-                player?.setPreAmplification(db)
-                binding.customDbInputRow.visibility = View.GONE
-                binding.customDbChevron.rotation = 0f
-                val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE)
-                        as android.view.inputmethod.InputMethodManager
-                imm.hideSoftInputFromWindow(binding.customDbInput.windowToken, 0)
-            }
-        }
-
-        binding.customDbInfo.setOnClickListener {
-            com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Amplification Info")
-                .setMessage("Adjust playback volume amplification. Recommended max 20 dB.")
-                .setPositiveButton("Got it") { dialog, _ -> dialog.dismiss() }
-                .show()
         }
     }
 
@@ -139,8 +111,8 @@ class PlayerFragment : Fragment() {
             setDrawGridLines(true)
             gridColor = Color.parseColor("#F0F0F0")
             gridLineWidth = 1f
-            axisMinimum = -1f
-            axisMaximum = 1f
+            axisMinimum = -0.5f
+            axisMaximum = 0.5f
             setDrawLabels(false)
             setDrawAxisLine(false)
         }
@@ -187,8 +159,12 @@ class PlayerFragment : Fragment() {
                     }
                     binding.waveformChart.apply {
                         data = LineData(dataSet)
-                        setVisibleXRangeMaximum(10f)
-                        moveViewToX(0f)
+                        setVisibleXRangeMaximum(4f)
+                        centerViewTo(
+                            2f,
+                            0f,
+                            com.github.mikephil.charting.components.YAxis.AxisDependency.LEFT
+                        )
                         setTouchEnabled(true)
                         isDragEnabled = true
                         setScaleEnabled(true)
@@ -202,9 +178,16 @@ class PlayerFragment : Fragment() {
     }
 
     private fun setupPlayer(filePath: String) {
+        val filterName = arguments?.getString("filterName") ?: "HEART"
         try {
             player = TaalPlayer(requireContext()).apply {
                 setDataSource(filePath)
+                // Pre-filtered files (_filtered.wav) already have DSP applied during recording.
+                // Skip preset filter to avoid double-filtering.
+                if (!File(filePath).name.contains("_filtered")) {
+                    val preFilter = try { PreFilter.valueOf(filterName) } catch (_: Exception) { PreFilter.HEART }
+                    setPreFilter(preFilter)
+                }
                 onPlaybackProgress = { timestamp, _ ->
                     activity?.runOnUiThread {
                         if (isAdded && _binding != null) {
@@ -212,7 +195,14 @@ class PlayerFragment : Fragment() {
                             binding.timerText.text = String.format(
                                 "%02d:%02d", totalSecs / 60, totalSecs % 60
                             )
-                            binding.waveformChart.moveViewToX(timestamp.toFloat())
+                            val chart = binding.waveformChart
+                            val halfRange = chart.visibleXRange / 2f
+                            val centerX = if (timestamp.toFloat() < halfRange) halfRange else timestamp.toFloat()
+                            chart.centerViewTo(
+                                centerX,
+                                0f,
+                                com.github.mikephil.charting.components.YAxis.AxisDependency.LEFT
+                            )
                         }
                     }
                 }
@@ -222,7 +212,12 @@ class PlayerFragment : Fragment() {
                             isPlaying = false
                             binding.actionText.text = getString(R.string.play_recording)
                             binding.playButton.setImageResource(R.drawable.ic_play_circle)
-                            binding.waveformChart.moveViewToX(0f)
+                            val chart = binding.waveformChart
+                            chart.centerViewTo(
+                                chart.visibleXRange / 2f,
+                                0f,
+                                com.github.mikephil.charting.components.YAxis.AxisDependency.LEFT
+                            )
                         }
                     }
                 }
@@ -240,9 +235,20 @@ class PlayerFragment : Fragment() {
             isPlaying = false
             binding.actionText.text = getString(R.string.play_recording)
             binding.playButton.setImageResource(R.drawable.ic_play_circle)
-            binding.waveformChart.moveViewToX(0f)
+            val chart = binding.waveformChart
+            chart.centerViewTo(
+                chart.visibleXRange / 2f,
+                0f,
+                com.github.mikephil.charting.components.YAxis.AxisDependency.LEFT
+            )
         } else {
             try {
+                val chart = binding.waveformChart
+                chart.centerViewTo(
+                    chart.visibleXRange / 2f,
+                    0f,
+                    com.github.mikephil.charting.components.YAxis.AxisDependency.LEFT
+                )
                 player?.prepare()
                 player?.start()
                 isPlaying = true
@@ -259,9 +265,10 @@ class PlayerFragment : Fragment() {
      * Shows TaalSaveDialog to let the user name and save the recording.
      * On save confirmed → renames file → finishes TaalRecorderActivity with RESULT_OK.
      */
-    private fun showTaalSaveDialog(filePath: String, filterName: String) {
+    private fun showTaalSaveDialog(filePath: String, rawFilePath: String, filterName: String) {
         TaalSaveDialog(
             tempFilePath = filePath,
+            rawTempFilePath = rawFilePath,
             filterName = filterName,
             onSaved = { finalPath ->
                 // Store result so client gets it when activity eventually finishes.
@@ -285,12 +292,15 @@ class PlayerFragment : Fragment() {
      * Confirms discard: deletes the temp recording file and returns to the recording screen
      * (or finishes the activity with RESULT_CANCELED).
      */
-    private fun confirmDiscard(filePath: String) {
+    private fun confirmDiscard(filePath: String, rawFilePath: String) {
         com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
             .setTitle("Discard Recording?")
             .setMessage("This recording will be permanently deleted.")
             .setPositiveButton("Discard") { _, _ ->
                 try { File(filePath).delete() } catch (_: Exception) {}
+                if (rawFilePath.isNotEmpty()) {
+                    try { File(rawFilePath).delete() } catch (_: Exception) {}
+                }
                 (requireActivity() as? TaalRecorderActivity)?.discardAndFinish()
                     ?: findNavController().navigateUp()
             }

@@ -34,6 +34,7 @@ class RecordingViewModel(application: Application) : AndroidViewModel(applicatio
     val preAmpDb: LiveData<Int> = _preAmpDb
 
     var currentRecordingPath: String = ""
+    var currentFilteredPath: String = ""
 
     fun setUiState(state: RecordingUiState) {
         _uiState.value = state
@@ -52,7 +53,7 @@ class RecordingViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun setPreAmp(db: Int) {
-        _preAmpDb.value = db.coerceIn(0, 20)
+        _preAmpDb.value = db.coerceIn(0, 30)
     }
 
     fun formatTimer(seconds: Int): String {

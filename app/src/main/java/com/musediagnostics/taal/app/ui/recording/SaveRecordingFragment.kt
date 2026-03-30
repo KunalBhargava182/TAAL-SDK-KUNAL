@@ -6,9 +6,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.musediagnostics.taal.app.R
 import com.musediagnostics.taal.app.databinding.FragmentSaveRecordingBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -29,15 +33,15 @@ class SaveRecordingFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val filePath = arguments?.getString("filePath") ?: ""
-        val filterName = arguments?.getString("filterName") ?: "HEART"
+        val filePath = arguments?.getString("filePath") ?: ""       // filtered temp
+        val rawFilePath = arguments?.getString("rawFilePath") ?: ""  // raw temp
 
-        // Show filter chip
-        binding.filterChip.text = filterName
+        // Hide the filter chip entirely since we are no longer using filterName
+        binding.filterChip.visibility = View.GONE
 
-        // Pre-fill filename: FILTER_yyyyMMdd_HHmmss
-        val dateStr = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val suggestedName = "${filterName}_${dateStr}"
+        // Pre-fill filename: yyyyMMdd_HHmmss (Removed filterName)
+        val timeStr = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val suggestedName = "$timeStr"
         binding.fileNameInput.setText(suggestedName)
         binding.fileNameInput.setSelection(suggestedName.length)
 
@@ -57,44 +61,47 @@ class SaveRecordingFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            val savedPath = saveRecording(filePath, name)
-            if (savedPath != null) {
-                Toast.makeText(requireContext(), "Recording saved!", Toast.LENGTH_SHORT).show()
-                // Navigate to saved recordings list, popping recording screen is NOT done —
-                // user can go back to recording naturally. Pop back to recordingFragment.
-                findNavController().navigate(
-                    R.id.action_saveRecording_to_savedRecordings,
-                    null,
-                    androidx.navigation.NavOptions.Builder()
-                        .setPopUpTo(R.id.recordingFragment, false).build()
-                )
-            } else {
-                Toast.makeText(requireContext(), "Failed to save recording", Toast.LENGTH_SHORT)
-                    .show()
+            binding.saveButton.isEnabled = false
+            val ctx = requireContext()
+
+            lifecycleScope.launch(Dispatchers.IO) {
+                val savedPath = saveRecording(ctx, filePath, rawFilePath, name)
+                withContext(Dispatchers.Main) {
+                    if (_binding == null) return@withContext
+                    if (savedPath != null) {
+                        Toast.makeText(ctx, "Recording saved!", Toast.LENGTH_SHORT).show()
+                        findNavController().navigate(
+                            R.id.action_saveRecording_to_savedRecordings,
+                            null,
+                            androidx.navigation.NavOptions.Builder()
+                                .setPopUpTo(R.id.recordingFragment, false).build()
+                        )
+                    } else {
+                        binding.saveButton.isEnabled = true
+                        Toast.makeText(ctx, "Failed to save recording", Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
         }
     }
 
-    private fun saveRecording(tempPath: String, name: String): String? {
+    private fun saveRecording(ctx: android.content.Context, filteredTempPath: String, rawTempPath: String, name: String): String? {
         return try {
-            val tempFile = File(tempPath)
-            if (!tempFile.exists()) return null
-
-            val savedDir = File(requireContext().filesDir, "saved")
+            val savedDir = File(ctx.filesDir, "saved")
             savedDir.mkdirs()
-
-            // Sanitize filename (no slashes, no null bytes)
             val safeName = name.replace(Regex("[/\\\\:*?\"<>|]"), "_")
-            val destFile = File(savedDir, "$safeName.wav")
 
-            if (tempFile.renameTo(destFile)) {
-                destFile.absolutePath
-            } else {
-                // Fallback: copy then delete
-                tempFile.copyTo(destFile, overwrite = true)
-                tempFile.delete()
-                destFile.absolutePath
-            }
+            // Rename filtered temp → saved filtered file
+            val filteredTemp = File(filteredTempPath)
+            val filteredSaved = File(savedDir, "${safeName}_filtered.wav")
+            if (filteredTemp.exists()) filteredTemp.renameTo(filteredSaved)
+
+            // Rename raw temp → saved raw file
+            val rawTemp = File(rawTempPath)
+            val rawSaved = File(savedDir, "${safeName}_raw.wav")
+            if (rawTemp.exists()) rawTemp.renameTo(rawSaved)
+
+            filteredSaved.absolutePath
         } catch (e: Exception) {
             e.printStackTrace()
             null

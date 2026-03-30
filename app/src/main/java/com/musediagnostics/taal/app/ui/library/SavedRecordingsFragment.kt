@@ -52,13 +52,21 @@ class SavedRecordingsFragment : Fragment() {
             binding.emptyState.visibility = View.GONE
             binding.recordingsList.visibility = View.VISIBLE
             binding.recordingsList.adapter = SavedRecordingAdapter(files) { file ->
+                val filterName = extractFilterName(file.nameWithoutExtension)
                 val bundle = Bundle().apply {
                     putString("filePath", file.absolutePath)
                     putBoolean("isNewRecording", false)
+                    putString("filterName", filterName)
                 }
                 findNavController().navigate(R.id.action_savedRecordings_to_player, bundle)
             }
         }
+    }
+
+    // Try longest match first so FULL_BODY isn't mis-parsed as FULL
+    private fun extractFilterName(fileNameWithoutExtension: String): String {
+        val known = listOf("FULL_BODY", "PREGNANCY", "HEART", "LUNGS", "BOWEL")
+        return known.firstOrNull { fileNameWithoutExtension.startsWith(it) } ?: "HEART"
     }
 
     override fun onDestroyView() {

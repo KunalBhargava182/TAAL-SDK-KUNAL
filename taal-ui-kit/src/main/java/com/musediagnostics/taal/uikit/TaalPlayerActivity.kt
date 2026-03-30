@@ -23,6 +23,7 @@ class TaalPlayerActivity : AppCompatActivity() {
         const val EXTRA_FILE_PATH = "filePath"
 
         fun getIntent(context: Context, filePath: String): Intent {
+            require(filePath.isNotBlank()) { "filePath must not be blank" }
             return Intent(context, TaalPlayerActivity::class.java).apply {
                 putExtra(EXTRA_FILE_PATH, filePath)
             }

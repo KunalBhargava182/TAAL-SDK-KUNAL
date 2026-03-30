@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -67,13 +68,16 @@ public final class FragmentPlayerBinding implements ViewBinding {
   @NonNull
   public final LineChart waveformChart;
 
+  @NonNull
+  public final ProgressBar waveformLoadingIndicator;
+
   private FragmentPlayerBinding(@NonNull ConstraintLayout rootView, @NonNull TextView actionText,
       @NonNull TextView ampLabel, @NonNull Slider ampSlider,
       @NonNull MaterialCardView ampSliderContainer, @NonNull ImageButton backButton,
       @NonNull Button discardButton, @NonNull ImageButton eqButton, @NonNull ImageButton playButton,
       @NonNull Button saveButton, @NonNull LinearLayout saveDiscardBar,
       @NonNull TextView screenTitle, @NonNull TextView timerText, @NonNull ConstraintLayout topBar,
-      @NonNull LineChart waveformChart) {
+      @NonNull LineChart waveformChart, @NonNull ProgressBar waveformLoadingIndicator) {
     this.rootView = rootView;
     this.actionText = actionText;
     this.ampLabel = ampLabel;
@@ -89,6 +93,7 @@ public final class FragmentPlayerBinding implements ViewBinding {
     this.timerText = timerText;
     this.topBar = topBar;
     this.waveformChart = waveformChart;
+    this.waveformLoadingIndicator = waveformLoadingIndicator;
   }
 
   @Override
@@ -202,9 +207,15 @@ public final class FragmentPlayerBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.waveformLoadingIndicator;
+      ProgressBar waveformLoadingIndicator = ViewBindings.findChildViewById(rootView, id);
+      if (waveformLoadingIndicator == null) {
+        break missingId;
+      }
+
       return new FragmentPlayerBinding((ConstraintLayout) rootView, actionText, ampLabel, ampSlider,
           ampSliderContainer, backButton, discardButton, eqButton, playButton, saveButton,
-          saveDiscardBar, screenTitle, timerText, topBar, waveformChart);
+          saveDiscardBar, screenTitle, timerText, topBar, waveformChart, waveformLoadingIndicator);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

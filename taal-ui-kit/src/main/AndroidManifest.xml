@@ -13,12 +13,14 @@
         <activity
             android:name=".TaalRecorderActivity"
             android:exported="true"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.TaalUiKit"
             android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".TaalPlayerActivity"
             android:exported="true"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.TaalUiKit" />
 
     </application>

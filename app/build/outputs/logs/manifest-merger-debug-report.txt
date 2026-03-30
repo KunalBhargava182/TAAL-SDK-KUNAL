@@ -1,11 +1,11 @@
 -- Merging decision tree log ---
 manifest
-ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:2:1-32:12
-INJECTED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:2:1-32:12
-INJECTED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:2:1-32:12
-INJECTED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:2:1-32:12
-MERGED from [:taal-sdk] E:\AndroidProjects\TaalDemoApp\taal-sdk\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:2:1-23:12
+ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:2:1-33:12
+INJECTED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:2:1-33:12
+INJECTED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:2:1-33:12
+INJECTED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:2:1-33:12
 MERGED from [androidx.databinding:viewbinding:8.8.1] C:\Users\kunal\.gradle\caches\8.10.2\transforms\e88101dd9740a32abb78bb793d54ff94\transformed\viewbinding-8.8.1\AndroidManifest.xml:2:1-7:12
+MERGED from [:taal-core] E:\AndroidProjects\TaalDemoApp\taal-core\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:2:1-14:12
 MERGED from [androidx.navigation:navigation-common:2.7.6] C:\Users\kunal\.gradle\caches\8.10.2\transforms\9b4911b4c4be86d84f2c2d677199aa9b\transformed\navigation-common-2.7.6\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.navigation:navigation-common-ktx:2.7.6] C:\Users\kunal\.gradle\caches\8.10.2\transforms\3c66c44abd19db08393ccc3200ba9a8b\transformed\navigation-common-ktx-2.7.6\AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.navigation:navigation-runtime:2.7.6] C:\Users\kunal\.gradle\caches\8.10.2\transforms\016f6eb07695c05a4ad02ce64537e0dd\transformed\navigation-runtime-2.7.6\AndroidManifest.xml:17:1-22:12
@@ -80,29 +80,27 @@ MERGED from [androidx.print:print:1.0.0] C:\Users\kunal\.gradle\caches\8.10.2\tr
 		ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:2:11-69
 uses-permission#android.permission.RECORD_AUDIO
 ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:4:5-71
-MERGED from [:taal-sdk] E:\AndroidProjects\TaalDemoApp\taal-sdk\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:7:5-71
-MERGED from [:taal-sdk] E:\AndroidProjects\TaalDemoApp\taal-sdk\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:7:5-71
+MERGED from [:taal-core] E:\AndroidProjects\TaalDemoApp\taal-core\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:7:5-71
+MERGED from [:taal-core] E:\AndroidProjects\TaalDemoApp\taal-core\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:7:5-71
 	android:name
 		ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:4:22-68
 uses-permission#android.permission.USB_PERMISSION
 ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:5:5-73
-MERGED from [:taal-sdk] E:\AndroidProjects\TaalDemoApp\taal-sdk\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:8:5-73
-MERGED from [:taal-sdk] E:\AndroidProjects\TaalDemoApp\taal-sdk\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:8:5-73
+MERGED from [:taal-core] E:\AndroidProjects\TaalDemoApp\taal-core\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:8:5-73
+MERGED from [:taal-core] E:\AndroidProjects\TaalDemoApp\taal-core\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:8:5-73
 	android:name
 		ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:5:22-70
 uses-feature#android.hardware.usb.host
 ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:7:5-9:36
-MERGED from [:taal-sdk] E:\AndroidProjects\TaalDemoApp\taal-sdk\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:10:5-12:36
-MERGED from [:taal-sdk] E:\AndroidProjects\TaalDemoApp\taal-sdk\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:10:5-12:36
+MERGED from [:taal-core] E:\AndroidProjects\TaalDemoApp\taal-core\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:10:5-12:36
+MERGED from [:taal-core] E:\AndroidProjects\TaalDemoApp\taal-core\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:10:5-12:36
 	android:required
 		ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:9:9-33
 	android:name
 		ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:8:9-49
 application
-ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:11:5-30:19
-INJECTED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:11:5-30:19
-MERGED from [:taal-sdk] E:\AndroidProjects\TaalDemoApp\taal-sdk\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:14:5-21:19
-MERGED from [:taal-sdk] E:\AndroidProjects\TaalDemoApp\taal-sdk\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:14:5-21:19
+ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:11:5-31:19
+INJECTED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:11:5-31:19
 MERGED from [com.google.android.material:material:1.11.0] C:\Users\kunal\.gradle\caches\8.10.2\transforms\9671e2756e83b5e453d2b551ff60f76f\transformed\material-1.11.0\AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.11.0] C:\Users\kunal\.gradle\caches\8.10.2\transforms\9671e2756e83b5e453d2b551ff60f76f\transformed\material-1.11.0\AndroidManifest.xml:22:5-20
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] C:\Users\kunal\.gradle\caches\8.10.2\transforms\1675c828529655977b70677accecf416\transformed\constraintlayout-2.1.4\AndroidManifest.xml:9:5-20
@@ -142,31 +140,33 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\kunal\.gradle\cach
 	android:name
 		ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:12:9-40
 activity#com.musediagnostics.taal.app.ui.MainActivity
-ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:20:9-28:20
+ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:20:9-29:20
+	android:screenOrientation
+		ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:23:13-49
 	android:windowSoftInputMode
-		ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:23:13-55
+		ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:24:13-55
 	android:exported
 		ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:22:13-36
 	android:name
 		ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:21:13-44
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:24:13-27:29
+ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:25:13-28:29
 action#android.intent.action.MAIN
-ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:25:17-69
+ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:26:17-69
 	android:name
-		ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:25:25-66
+		ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:26:25-66
 category#android.intent.category.LAUNCHER
-ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:26:17-77
+ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:27:17-77
 	android:name
-		ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:26:27-74
+		ADDED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml:27:27-74
 uses-sdk
 INJECTED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml
 INJECTED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml
-MERGED from [:taal-sdk] E:\AndroidProjects\TaalDemoApp\taal-sdk\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:5:5-44
-MERGED from [:taal-sdk] E:\AndroidProjects\TaalDemoApp\taal-sdk\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:5:5-44
 MERGED from [androidx.databinding:viewbinding:8.8.1] C:\Users\kunal\.gradle\caches\8.10.2\transforms\e88101dd9740a32abb78bb793d54ff94\transformed\viewbinding-8.8.1\AndroidManifest.xml:5:5-44
 MERGED from [androidx.databinding:viewbinding:8.8.1] C:\Users\kunal\.gradle\caches\8.10.2\transforms\e88101dd9740a32abb78bb793d54ff94\transformed\viewbinding-8.8.1\AndroidManifest.xml:5:5-44
+MERGED from [:taal-core] E:\AndroidProjects\TaalDemoApp\taal-core\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:5:5-44
+MERGED from [:taal-core] E:\AndroidProjects\TaalDemoApp\taal-core\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:5:5-44
 MERGED from [androidx.navigation:navigation-common:2.7.6] C:\Users\kunal\.gradle\caches\8.10.2\transforms\9b4911b4c4be86d84f2c2d677199aa9b\transformed\navigation-common-2.7.6\AndroidManifest.xml:20:5-44
 MERGED from [androidx.navigation:navigation-common:2.7.6] C:\Users\kunal\.gradle\caches\8.10.2\transforms\9b4911b4c4be86d84f2c2d677199aa9b\transformed\navigation-common-2.7.6\AndroidManifest.xml:20:5-44
 MERGED from [androidx.navigation:navigation-common-ktx:2.7.6] C:\Users\kunal\.gradle\caches\8.10.2\transforms\3c66c44abd19db08393ccc3200ba9a8b\transformed\navigation-common-ktx-2.7.6\AndroidManifest.xml:5:5-44
@@ -299,18 +299,6 @@ MERGED from [androidx.print:print:1.0.0] C:\Users\kunal\.gradle\caches\8.10.2\tr
 		INJECTED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml
 	android:minSdkVersion
 		INJECTED from E:\AndroidProjects\TaalDemoApp\app\src\main\AndroidManifest.xml
-activity#com.musediagnostics.taal.ui.RecorderActivity
-ADDED from [:taal-sdk] E:\AndroidProjects\TaalDemoApp\taal-sdk\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:15:9-17:40
-	android:exported
-		ADDED from [:taal-sdk] E:\AndroidProjects\TaalDemoApp\taal-sdk\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:17:13-37
-	android:name
-		ADDED from [:taal-sdk] E:\AndroidProjects\TaalDemoApp\taal-sdk\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:16:13-72
-activity#com.musediagnostics.taal.ui.PlayerActivity
-ADDED from [:taal-sdk] E:\AndroidProjects\TaalDemoApp\taal-sdk\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:18:9-20:40
-	android:exported
-		ADDED from [:taal-sdk] E:\AndroidProjects\TaalDemoApp\taal-sdk\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:20:13-37
-	android:name
-		ADDED from [:taal-sdk] E:\AndroidProjects\TaalDemoApp\taal-sdk\build\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:19:13-70
 uses-permission#android.permission.USE_BIOMETRIC
 ADDED from [androidx.biometric:biometric:1.1.0] C:\Users\kunal\.gradle\caches\8.10.2\transforms\5fec1dd82c300c73ea704c3885d38f3b\transformed\biometric-1.1.0\AndroidManifest.xml:24:5-72
 	android:name

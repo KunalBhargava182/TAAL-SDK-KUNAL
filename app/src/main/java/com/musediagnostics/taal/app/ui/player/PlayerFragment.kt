@@ -14,6 +14,7 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.musediagnostics.taal.InvalidFileNameException
+import com.musediagnostics.taal.PreFilter
 import com.musediagnostics.taal.TaalPlayer
 import com.musediagnostics.taal.app.R
 import com.musediagnostics.taal.app.databinding.FragmentPlayerBinding
@@ -54,8 +55,8 @@ class PlayerFragment : Fragment() {
         setupAmpSlider()
 
         if (filePath.isNotEmpty()) {
-            loadFullWaveform(filePath)
-            setupPlayer(filePath)
+            loadFullWaveform(filePath, filterName)
+            setupPlayer(filePath, filterName)
         }
 
         binding.backButton.setOnClickListener {
@@ -79,8 +80,10 @@ class PlayerFragment : Fragment() {
 
         binding.saveButton.setOnClickListener {
             if (isNewRecording) {
+                val rawFilePath = arguments?.getString("rawFilePath") ?: ""
                 val bundle = Bundle().apply {
                     putString("filePath", filePath)
+                    putString("rawFilePath", rawFilePath)
                     putString("filterName", filterName)
                 }
                 findNavController().navigate(R.id.action_player_to_saveRecording, bundle)
@@ -135,76 +138,76 @@ class PlayerFragment : Fragment() {
         }
 
         chart.axisRight.isEnabled = false
+
+        val dummyDataSet = LineDataSet(listOf(Entry(0f, 0f), Entry(4f, 0f)), "").apply {
+            color = Color.TRANSPARENT
+            setDrawCircles(false)
+            setDrawValues(false)
+        }
+        chart.data = LineData(dummyDataSet)
+        chart.invalidate()
     }
 
-    private fun loadFullWaveform(filePath: String) {
+    private fun loadFullWaveform(filePath: String, filterName: String) {
+        // Read raw bytes directly — file is pre-filtered (written in real-time during recording),
+        // so no AudioFilterEngine computation needed here. This is near-instant.
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val file = File(filePath)
-                if (!file.exists()) return@launch
-
-                val bytes = file.readBytes()
-                val dataSize = bytes.size - 44
-                val totalSamples = dataSize / 2
-                val totalDurationSeconds = (totalSamples / INPUT_SAMPLE_RATE).toInt()
-
-                val sampleStep = maxOf(1, totalSamples / 3000)
-                val entries = ArrayList<Entry>()
-                var sampleIndex = 0
-
-                for (i in 44 until bytes.size - 1 step sampleStep * 2) {
-                    val low = bytes[i].toInt() and 0xFF
-                    val high = bytes[i + 1].toInt() shl 8
-                    val sample = (high or low).toShort().toFloat() / 32768f
-                    entries.add(Entry((sampleIndex.toFloat() / INPUT_SAMPLE_RATE), sample))
-                    sampleIndex += sampleStep
-                }
-
-                withContext(Dispatchers.Main) {
-                    if (_binding == null) return@withContext
-
-                    binding.timerText.text = String.format(
-                        "%02d:%02d", totalDurationSeconds / 60, totalDurationSeconds % 60
-                    )
-
-                    val dataSet = LineDataSet(entries, "Waveform").apply {
-                        color = Color.parseColor("#2D7DD2")
-                        setDrawCircles(false)
-                        setDrawValues(false)
-                        lineWidth = 2.5f
-                        mode = LineDataSet.Mode.LINEAR
-                    }
-                    binding.waveformChart.apply {
-                        data = LineData(dataSet)
-
-                        setVisibleXRangeMaximum(4f)
-
-                        // FIX 1: Initial load centers the view at the start without jumping to the top
-                        centerViewTo(
-                            2f,
-                            0f,
-                            com.github.mikephil.charting.components.YAxis.AxisDependency.LEFT
-                        )
-
-                        setTouchEnabled(true)
-                        isDragEnabled = true
-
-                        // TIP: If you want to stop the user from messing up the vertical scale and only allow horizontal zooming,
-                        // change setScaleEnabled(true) to setScaleXEnabled(true) and setScaleYEnabled(false).
-                        setScaleEnabled(true)
-                        invalidate()
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
+            val file = File(filePath)
+            if (!file.exists()) return@launch
+            val bytes = file.readBytes()
+            val dataSize = bytes.size - 44
+            val totalSamples = dataSize / 2
+            val durationSecs = (totalSamples / INPUT_SAMPLE_RATE).toInt()
+            val maxPoints = 3000
+            val step = maxOf(1, totalSamples / maxPoints)
+            val entries = ArrayList<Entry>()
+            var i = 0
+            while (i < totalSamples) {
+                val bytePos = 44 + i * 2
+                if (bytePos + 1 >= bytes.size) break
+                val low = bytes[bytePos].toInt() and 0xFF
+                val high = bytes[bytePos + 1].toInt() shl 8
+                val sample = (high or low).toShort().toFloat() / 32768f
+                entries.add(Entry(i.toFloat() / INPUT_SAMPLE_RATE, sample))
+                i += step
+            }
+            withContext(Dispatchers.Main) {
+                if (_binding == null) return@withContext
+                renderWaveformEntries(entries, durationSecs)
             }
         }
     }
 
-    private fun setupPlayer(filePath: String) {
+    private fun renderWaveformEntries(entries: ArrayList<Entry>, durationSecs: Int) {
+        binding.timerText.text = String.format("%02d:%02d", durationSecs / 60, durationSecs % 60)
+        val dataSet = LineDataSet(entries, "Waveform").apply {
+            color = Color.parseColor("#2D7DD2")
+            setDrawCircles(false)
+            setDrawValues(false)
+            lineWidth = 2.5f
+            mode = LineDataSet.Mode.LINEAR
+        }
+        binding.waveformChart.apply {
+            data = LineData(dataSet)
+            setVisibleXRangeMaximum(4f)
+            centerViewTo(2f, 0f, com.github.mikephil.charting.components.YAxis.AxisDependency.LEFT)
+            setTouchEnabled(true)
+            isDragEnabled = true
+            setScaleEnabled(true)
+            invalidate()
+        }
+    }
+
+    private fun setupPlayer(filePath: String, filterName: String) {
         try {
             player = TaalPlayer(requireContext()).apply {
                 setDataSource(filePath)
+                // Pre-filtered files (_filtered.wav) already have DSP applied in real-time
+                // during recording — skip preset filter to avoid double-filtering.
+                if (!File(filePath).name.contains("_filtered")) {
+                    val preFilter = try { PreFilter.valueOf(filterName) } catch (_: Exception) { PreFilter.HEART }
+                    setPreFilter(preFilter)
+                }
                 onPlaybackProgress = { timestamp, _ ->
                     activity?.runOnUiThread {
                         if (isAdded && _binding != null) {
@@ -293,13 +296,14 @@ class PlayerFragment : Fragment() {
     }
 
     private fun showDiscardConfirmation(filePath: String) {
+        val rawFilePath = arguments?.getString("rawFilePath") ?: ""
         com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
             .setTitle("Discard Recording")
             .setMessage("Are you sure you want to discard this recording? It will be permanently deleted.")
             .setPositiveButton("Discard") { _, _ ->
-                try {
-                    java.io.File(filePath).delete()
-                } catch (_: Exception) {
+                try { java.io.File(filePath).delete() } catch (_: Exception) {}
+                if (rawFilePath.isNotEmpty()) {
+                    try { java.io.File(rawFilePath).delete() } catch (_: Exception) {}
                 }
                 findNavController().navigateUp()
             }.setNegativeButton("Cancel", null).show()

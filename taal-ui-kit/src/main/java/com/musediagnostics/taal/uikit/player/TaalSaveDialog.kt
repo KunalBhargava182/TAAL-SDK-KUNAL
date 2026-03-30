@@ -23,6 +23,7 @@ import java.util.Locale
  */
 class TaalSaveDialog(
     private val tempFilePath: String,
+    private val rawTempFilePath: String = "",
     private val filterName: String,
     private val onSaved: (finalPath: String) -> Unit,
     private val onCancelled: () -> Unit
@@ -39,10 +40,9 @@ class TaalSaveDialog(
 
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        // Pre-fill with {FILTER_NAME}_{yyyyMMdd_HHmmss}
+        // Pre-fill with {yyyyMMdd_HHmmss}
         val dateStr = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val defaultName = "${filterName}_${dateStr}"
-        view.findViewById<TextInputEditText>(R.id.fileNameInput).setText(defaultName)
+        view.findViewById<TextInputEditText>(R.id.fileNameInput).setText(dateStr)
 
         view.findViewById<Button>(R.id.saveButton).setOnClickListener {
             val name = view.findViewById<TextInputEditText>(R.id.fileNameInput)
@@ -63,21 +63,35 @@ class TaalSaveDialog(
 
             val safeName = name.replace(Regex("[/\\\\:*?\"<>|]"), "_")
             val savedDir = File(requireContext().filesDir, "saved").also { it.mkdirs() }
-            val finalFile = File(savedDir, "$safeName.wav")
 
-            if (tempFile.renameTo(finalFile)) {
-                dismiss()
-                onSaved(finalFile.absolutePath)
+            // Save filtered file
+            val filteredFile = File(savedDir, "${safeName}_filtered.wav")
+            val filteredSaved = if (tempFile.renameTo(filteredFile)) {
+                filteredFile
             } else {
                 try {
-                    tempFile.copyTo(finalFile, overwrite = true)
+                    tempFile.copyTo(filteredFile, overwrite = true)
                     tempFile.delete()
-                    dismiss()
-                    onSaved(finalFile.absolutePath)
+                    filteredFile
                 } catch (e: Exception) {
                     Toast.makeText(requireContext(), "Failed to save file", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
                 }
             }
+
+            // Save raw file (best-effort — no failure if missing)
+            if (rawTempFilePath.isNotEmpty()) {
+                val rawTemp = File(rawTempFilePath)
+                val rawFile = File(savedDir, "${safeName}_raw.wav")
+                if (rawTemp.exists()) {
+                    if (!rawTemp.renameTo(rawFile)) {
+                        try { rawTemp.copyTo(rawFile, overwrite = true); rawTemp.delete() } catch (_: Exception) {}
+                    }
+                }
+            }
+
+            dismiss()
+            onSaved(filteredSaved.absolutePath)
         }
 
         view.findViewById<Button>(R.id.cancelButton).setOnClickListener {
